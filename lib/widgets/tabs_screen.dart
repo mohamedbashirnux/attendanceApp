@@ -5,16 +5,16 @@ import '../pages/home_page.dart';
 import '../pages/graduation_page.dart';
 import '../pages/ai_chatbot_page.dart';
 import '../pages/about_page.dart';
-import '../widgets/app_drawer.dart';
+import 'app_drawer.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class TabsScreen extends StatefulWidget {
+  const TabsScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<TabsScreen> createState() => _TabsScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _TabsScreenState extends State<TabsScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
