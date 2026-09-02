@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import 'models/teacher_session.dart';
+import 'teacher_api_service.dart';
+import 'teacher_shell.dart';
+
 class TeacherLoginPage extends StatefulWidget {
   const TeacherLoginPage({super.key});
 
@@ -11,7 +15,27 @@ class TeacherLoginPage extends StatefulWidget {
 class _TeacherLoginPageState extends State<TeacherLoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _api = TeacherApiService();
+
   bool _obscurePassword = true;
+  bool _usernameError = false;
+  bool _passwordError = false;
+  bool _loading = false;
+  String? _serverError;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreSession();
+  }
+
+  Future<void> _restoreSession() async {
+    final session = await TeacherSession.load();
+    if (!mounted || session == null) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => TeacherShell(session: session)),
+    );
+  }
 
   @override
   void dispose() {
@@ -20,258 +44,282 @@ class _TeacherLoginPageState extends State<TeacherLoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter username and password'),
-          backgroundColor: Colors.red,
+  Future<void> _handleLogin() async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+    final usernameEmpty = username.isEmpty;
+    final passwordEmpty = password.isEmpty;
+
+    setState(() {
+      _usernameError = usernameEmpty;
+      _passwordError = passwordEmpty;
+      _serverError = null;
+    });
+
+    if (usernameEmpty || passwordEmpty) return;
+
+    setState(() => _loading = true);
+    try {
+      final result = await _api.login(
+        username: username,
+        password: password,
+      );
+      final session = TeacherSession(
+        token: result.token,
+        teacher: result.teacher,
+      );
+      await session.save();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => TeacherShell(session: session),
         ),
       );
-      return;
+    } on TeacherApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _serverError = e.message);
+    } catch (e) {
+      if (!mounted) return;
+      // Surface the real underlying error so we can tell localhost / DNS /
+      // timeout issues apart from auth failures.
+      setState(() => _serverError = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-
-    // TODO: Add actual login logic here
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login functionality coming soon!'),
-        backgroundColor: Color(0xFF5F61E6),
-      ),
-    );
-  }
-
-  void _handleGetAccount() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Please ask your faculty to create account and access'),
-        backgroundColor: Color(0xFF5F61E6),
-        duration: Duration(seconds: 3),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final errorColor = const Color(0xFFE5484D);
+    final accent = const Color(0xFF5F61E6);
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Logo
-                Container(
-                  width: 120,
-                  height: 120,
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF5F61E6).withOpacity(0.2),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      'assets/logo1.png',
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Title
-                const Text(
-                  'Lectures Login',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF5F61E6),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // Subtitle
-                Text(
-                  'Please sign in to your account',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                // Login Card
-                Container(
-                  padding: const EdgeInsets.all(30),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Username Input
-                      TextField(
-                        controller: _usernameController,
-                        decoration: InputDecoration(
-                          labelText: 'Username',
-                          hintText: 'Enter your username',
-                          prefixIcon: const Icon(
-                            Iconsax.user,
-                            color: Color(0xFF5F61E6),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF5F61E6),
-                              width: 2,
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[50],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Password Input
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          hintText: 'Enter your password',
-                          prefixIcon: const Icon(
-                            Iconsax.lock,
-                            color: Color(0xFF5F61E6),
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Iconsax.eye_slash
-                                  : Iconsax.eye,
-                              color: Colors.grey[600],
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF5F61E6),
-                              width: 2,
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[50],
-                        ),
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // Sign In Button
-                      ElevatedButton(
-                        onPressed: _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF5F61E6),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          elevation: 5,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Sign In',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            Icon(Iconsax.login),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Get Account Text
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'Don\'t have an account? ',
+                    // Logo — bare image, no white card, no big shadow
+                    Center(
+                      child: Image.asset(
+                        'assets/logo1.png',
+                        height: 96,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Title block
+                    const Text(
+                      'Lectures Login',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1B1E22),
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Sign in to access your classes',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.grey[700],
+                        color: Color(0xFF5B6167),
                       ),
                     ),
-                    TextButton(
-                      onPressed: _handleGetAccount,
-                      child: const Text(
-                        'Get Account',
+                    const SizedBox(height: 36),
+
+                    // Username
+                    TextField(
+                      controller: _usernameController,
+                      enabled: !_loading,
+                      onChanged: (_) {
+                        if (_usernameError) {
+                          setState(() => _usernameError = false);
+                        }
+                      },
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF1B1E22),
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Username',
+                        hintText: 'Enter your username',
+                        prefixIcon: Icon(
+                          Iconsax.user,
+                          color: _usernameError ? errorColor : accent,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
+                        ),
+                        border: _border(Colors.grey.shade300),
+                        enabledBorder: _border(
+                          _usernameError ? errorColor : Colors.grey.shade300,
+                        ),
+                        focusedBorder: _border(
+                          _usernameError ? errorColor : accent,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Password
+                    TextField(
+                      controller: _passwordController,
+                      enabled: !_loading,
+                      obscureText: _obscurePassword,
+                      onChanged: (_) {
+                        if (_passwordError) {
+                          setState(() => _passwordError = false);
+                        }
+                      },
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF1B1E22),
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Enter your password',
+                        prefixIcon: Icon(
+                          Iconsax.lock,
+                          color: _passwordError ? errorColor : accent,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Iconsax.eye_slash
+                                : Iconsax.eye,
+                            color: Colors.grey.shade600,
+                          ),
+                          onPressed: _loading
+                              ? null
+                              : () => setState(
+                                    () => _obscurePassword = !_obscurePassword,
+                                  ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
+                        ),
+                        border: _border(Colors.grey.shade300),
+                        enabledBorder: _border(
+                          _passwordError ? errorColor : Colors.grey.shade300,
+                        ),
+                        focusedBorder: _border(
+                          _passwordError ? errorColor : accent,
+                          width: 2,
+                        ),
+                      ),
+                      onSubmitted: (_) {
+                        if (!_loading) _handleLogin();
+                      },
+                    ),
+
+                    // Server error
+                    if (_serverError != null) ...[
+                      const SizedBox(height: 14),
+                      Text(
+                        _serverError!,
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF5F61E6),
+                          fontSize: 14,
+                          color: errorColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 32),
+
+                    // Sign In button
+                    SizedBox(
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _loading ? null : _handleLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accent,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor:
+                              accent.withOpacity(0.6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: _loading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Sign In',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Icon(Iconsax.login, size: 20),
+                                ],
+                              ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Get account hint
+                    TextButton(
+                      onPressed: _loading ? null : _handleGetAccount,
+                      child: Text.rich(
+                        TextSpan(
+                          text: 'Don\'t have an account? ',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade700,
+                          ),
+                          children: const [
+                            TextSpan(
+                              text: 'Get Account',
+                              style: TextStyle(
+                                color: Color(0xFF5F61E6),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
         ),
       ),
     );
+  }
+
+  OutlineInputBorder _border(Color color, {double width = 1}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: color, width: width),
+    );
+  }
+
+  void _handleGetAccount() {
+    setState(() => _serverError =
+        'Please ask your faculty to create an account for you.');
   }
 }
