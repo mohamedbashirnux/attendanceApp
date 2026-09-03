@@ -346,7 +346,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
         ? 0
         : ((presentCount / visible.length) * 100).round();
 
-    // Preview dialog first — let the teacher confirm before sending.
+    // 1. Preview / confirm dialog — let the teacher review before sending.
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -363,56 +363,70 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
     if (!mounted) return;
     if (confirmed != true) return; // user cancelled
 
+    // 2. Send to the server.
     setState(() => _submitting = true);
-    try {
-      await _api.submitAttendance(
-        classId: widget.classId,
-        subjectId: widget.subjectId,
-        token: widget.session.token,
-        absences: absentEntries,
-      );
-    } on TeacherApiException catch (e) {
-      if (!mounted) return;
-      setState(() => _submitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: const Color(0xFFE5484D),
-          content: Text(e.message, style: const TextStyle(color: Colors.white)),
-        ),
-      );
-      return;
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _submitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: const Color(0xFFE5484D),
-          content: Text('Network error: $e',
-              style: const TextStyle(color: Colors.white)),
-        ),
-      );
-      return;
-    }
+    final result = await _api.submitAttendance(
+      classId: widget.classId,
+      subjectId: widget.subjectId,
+      token: widget.session.token,
+      absences: absentEntries,
+    );
     if (!mounted) return;
     setState(() => _submitting = false);
 
-    // Success dialog → tap "Done" to go back to classes.
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => _AttendanceSummaryDialog(
-        subjectName: widget.subjectName,
-        className: _className ?? widget.className,
-        date: DateTime.now(),
-        presentCount: presentCount,
-        absentCount: absentCount,
-        rate: rate,
-        mode: _SummaryMode.success,
-        onClose: () => Navigator.of(ctx).pop(),
+    // 3. Show the right dialog for the result.
+    if (result.isOk) {
+      final serverMessage = result.body?['message'] as String?;
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => _AttendanceSummaryDialog(
+          subjectName: widget.subjectName,
+          className: _className ?? widget.className,
+          date: DateTime.now(),
+          presentCount: presentCount,
+          absentCount: absentCount,
+          rate: rate,
+          mode: _SummaryMode.success,
+          message: serverMessage,
+          onClose: () => Navigator.of(ctx).pop(),
+        ),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(); // back to classes list
+      return;
+    }
+
+    if (result.isAlreadySubmitted) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => _AttendanceSummaryDialog(
+          subjectName: widget.subjectName,
+          className: _className ?? widget.className,
+          date: DateTime.now(),
+          presentCount: presentCount,
+          absentCount: absentCount,
+          rate: rate,
+          mode: _SummaryMode.alreadyDone,
+          message: result.message,
+          onClose: () => Navigator.of(ctx).pop(),
+        ),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(); // back to classes list
+      return;
+    }
+
+    // Network / server error.
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFFE5484D),
+        content: Text(result.message ?? 'Unknown error',
+            style: const TextStyle(color: Colors.white)),
       ),
     );
-    if (!mounted) return;
-    Navigator.of(context).pop(); // back to classes list
   }
 
   @override
@@ -832,6 +846,53 @@ class _StudentRow extends StatelessWidget {
   }
 }
 
+class _StatPill extends StatelessWidget {
+  final String label;
+  final int count;
+  final Color color;
+
+  const _StatPill({
+    required this.label,
+    required this.count,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: color,
+              height: 1.0,
+            ),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w700,
+              color: color,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SubmitBar extends StatelessWidget {
   final int presentCount;
   final int total;
@@ -1000,7 +1061,7 @@ class _SubmitBar extends StatelessWidget {
   }
 }
 
-enum _SummaryMode { confirm, success }
+enum _SummaryMode { confirm, success, alreadyDone }
 
 class _AttendanceSummaryDialog extends StatelessWidget {
   final String subjectName;
@@ -1010,6 +1071,7 @@ class _AttendanceSummaryDialog extends StatelessWidget {
   final int absentCount;
   final int rate;
   final _SummaryMode mode;
+  final String? message;
   final VoidCallback? onClose;
 
   const _AttendanceSummaryDialog({
@@ -1020,6 +1082,7 @@ class _AttendanceSummaryDialog extends StatelessWidget {
     required this.absentCount,
     required this.rate,
     required this.mode,
+    this.message,
     this.onClose,
   });
 
@@ -1038,109 +1101,237 @@ class _AttendanceSummaryDialog extends StatelessWidget {
     final accent = const Color(0xFF5F61E6);
     final danger = const Color(0xFFE5484D);
     final isConfirm = mode == _SummaryMode.confirm;
+    final isAlreadyDone = mode == _SummaryMode.alreadyDone;
+    final isSuccess = mode == _SummaryMode.success;
     final rateColor = rate >= 70
         ? const Color(0xFF16A34A)
         : (rate >= 50 ? const Color(0xFFE89B2A) : danger);
-    final title = isConfirm ? 'Confirm Attendance' : 'Attendance Submitted';
-    final iconBg = isConfirm
-        ? accent.withOpacity(0.12)
-        : rateColor.withOpacity(0.12);
-    final iconColor = isConfirm ? accent : rateColor;
-    final icon = isConfirm ? Iconsax.document_text : Iconsax.tick_circle;
 
+    if (isSuccess) {
+      return _SuccessDialog(
+        subjectName: subjectName,
+        className: className,
+        date: date,
+        presentCount: presentCount,
+        absentCount: absentCount,
+        rate: rate,
+        rateColor: rateColor,
+        message: message,
+        onClose: onClose,
+      );
+    }
+    if (isAlreadyDone) {
+      return _AlreadyDoneDialog(
+        subjectName: subjectName,
+        className: className,
+        presentCount: presentCount,
+        absentCount: absentCount,
+        rate: rate,
+        message: message ?? 'This class is locked for today',
+        onClose: onClose,
+      );
+    }
+    return _ConfirmDialog(
+      subjectName: subjectName,
+      className: className,
+      date: date,
+      presentCount: presentCount,
+      absentCount: absentCount,
+      rate: rate,
+      rateColor: rateColor,
+    );
+  }
+}
+
+/// Confirm dialog — horizontal layout: big rate ring on the left, info on the right.
+class _ConfirmDialog extends StatelessWidget {
+  final String subjectName;
+  final String className;
+  final DateTime date;
+  final int presentCount;
+  final int absentCount;
+  final int rate;
+  final Color rateColor;
+
+  const _ConfirmDialog({
+    required this.subjectName,
+    required this.className,
+    required this.date,
+    required this.presentCount,
+    required this.absentCount,
+    required this.rate,
+    required this.rateColor,
+  });
+
+  String _formatDate(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final hh = d.hour.toString().padLeft(2, '0');
+    final mm = d.minute.toString().padLeft(2, '0');
+    return '${d.day} ${months[d.month - 1]} ${d.year} · $hh:$mm';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = const Color(0xFF5F61E6);
+    final danger = const Color(0xFFE5484D);
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       backgroundColor: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: iconBg,
-                border: Border.all(color: iconColor, width: 4),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$rate%',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: iconColor,
-                      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Top row: rate ring (left) + subject/class/date (right)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Big rate ring
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: rateColor.withOpacity(0.10),
+                      border: Border.all(color: rateColor, width: 4),
                     ),
-                    const Text(
-                      'ATTENDANCE',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.8,
-                        color: Color(0xFF8A8F95),
-                      ),
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$rate%',
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w800,
+                            color: rateColor,
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        const Text(
+                          'RATE',
+                          style: TextStyle(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: Color(0xFF8A8F95),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1B1E22),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _formatDate(date),
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF8A8F95),
-              ),
-            ),
-            const SizedBox(height: 20),
-            _DetailRow(
-                icon: Iconsax.book, label: 'Subject', value: subjectName),
-            const Divider(height: 24, color: Color(0xFFEEF0EE)),
-            _DetailRow(
-                icon: Iconsax.people, label: 'Class', value: className),
-            const Divider(height: 24, color: Color(0xFFEEF0EE)),
-            Row(
-              children: [
-                Expanded(
-                  child: _CountBox(
-                    label: 'Present',
-                    count: presentCount,
-                    color: accent,
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _CountBox(
-                    label: 'Absent',
-                    count: absentCount,
-                    color: danger,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Review Attendance',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1B1E22),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Please confirm before saving',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF8A8F95),
+                            height: 1.25,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Icon(Iconsax.book,
+                                size: 12, color: accent),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                subjectName,
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1B1E22),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            const Icon(Iconsax.people,
+                                size: 12, color: Color(0xFF8A8F95)),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                className,
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  color: Color(0xFF5B6167),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '· ${_formatDate(date)}',
+                              style: const TextStyle(
+                                fontSize: 10.5,
+                                color: Color(0xFF8A8F95),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (isConfirm)
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Present/Absent as compact pill row
+              Row(
+                children: [
+                  Expanded(
+                    child: _PillStat(
+                      icon: Iconsax.tick_circle,
+                      count: presentCount,
+                      label: 'Present',
+                      color: accent,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _PillStat(
+                      icon: Iconsax.close_circle,
+                      count: absentCount,
+                      label: 'Absent',
+                      color: danger,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              // Buttons
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(false),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
                         side: const BorderSide(
                             color: Color(0xFFDFE2DE), width: 1),
                         shape: RoundedRectangleBorder(
@@ -1156,24 +1347,24 @@ class _AttendanceSummaryDialog extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     flex: 2,
                     child: ElevatedButton.icon(
                       onPressed: () => Navigator.of(context).pop(true),
-                      icon: Icon(icon, size: 18),
+                      icon: const Icon(Iconsax.tick_circle, size: 16),
                       label: const Text(
                         'Submit',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: accent,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -1181,30 +1372,239 @@ class _AttendanceSummaryDialog extends StatelessWidget {
                     ),
                   ),
                 ],
-              )
-            else
-              SizedBox(
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Success dialog — celebratory check icon with rate-coloured gradient header.
+class _SuccessDialog extends StatelessWidget {
+  final String subjectName;
+  final String className;
+  final DateTime date;
+  final int presentCount;
+  final int absentCount;
+  final int rate;
+  final Color rateColor;
+  final String? message;
+  final VoidCallback? onClose;
+
+  const _SuccessDialog({
+    required this.subjectName,
+    required this.className,
+    required this.date,
+    required this.presentCount,
+    required this.absentCount,
+    required this.rate,
+    required this.rateColor,
+    required this.message,
+    required this.onClose,
+  });
+
+  String _formatDate(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final hh = d.hour.toString().padLeft(2, '0');
+    final mm = d.minute.toString().padLeft(2, '0');
+    return '${d.day} ${months[d.month - 1]} ${d.year} · $hh:$mm';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.white,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Gradient header with big check
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    rateColor.withOpacity(0.95),
+                    rateColor.withOpacity(0.7),
+                  ],
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: Icon(
+                      Iconsax.tick_circle,
+                      size: 38,
+                      color: rateColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Attendance Saved',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    message ?? 'Saved successfully',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: Colors.white.withOpacity(0.92),
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Body
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Subject + class + date row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              subjectName,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1B1E22),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              className,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF5B6167),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: rateColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '$rate%',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: rateColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _formatDate(date),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF8A8F95),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Stat row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _PillStat(
+                          icon: Iconsax.people,
+                          count: presentCount + absentCount,
+                          label: 'Total',
+                          color: const Color(0xFF1B1E22),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _PillStat(
+                          icon: Iconsax.tick_circle,
+                          count: presentCount,
+                          label: 'Present',
+                          color: const Color(0xFF5F61E6),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _PillStat(
+                          icon: Iconsax.close_circle,
+                          count: absentCount,
+                          label: 'Absent',
+                          color: const Color(0xFFE5484D),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Footer
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+              child: SizedBox(
                 width: double.infinity,
                 height: 44,
                 child: ElevatedButton(
                   onPressed: onClose,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: accent,
+                    backgroundColor: rateColor,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: const Text(
                     'Done',
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -1212,45 +1612,228 @@ class _AttendanceSummaryDialog extends StatelessWidget {
   }
 }
 
-class _StatPill extends StatelessWidget {
-  final String label;
+/// Already-submitted dialog — amber warning header with the full server message.
+class _AlreadyDoneDialog extends StatelessWidget {
+  final String subjectName;
+  final String className;
+  final int presentCount;
+  final int absentCount;
+  final int rate;
+  final String message;
+  final VoidCallback? onClose;
+
+  const _AlreadyDoneDialog({
+    required this.subjectName,
+    required this.className,
+    required this.presentCount,
+    required this.absentCount,
+    required this.rate,
+    required this.message,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final amber = const Color(0xFFE89B2A);
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.white,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Amber header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFE89B2A), Color(0xFFD17F1A)],
+                ),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: const Icon(
+                      Iconsax.shield_tick,
+                      size: 32,
+                      color: Color(0xFFE89B2A),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Already Submitted',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'This class is locked for today',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: Colors.white.withOpacity(0.92),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Body
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    subjectName,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1B1E22),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    className,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF5B6167),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7EB),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: amber.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Iconsax.info_circle,
+                          size: 16,
+                          color: Color(0xFFB57100),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            message,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF8B5A00),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Footer
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+              child: SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: onClose,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: amber,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Got it',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact pill stat: icon + count + label, all in one horizontal row.
+class _PillStat extends StatelessWidget {
+  final IconData icon;
   final int count;
+  final String label;
   final Color color;
 
-  const _StatPill({
-    required this.label,
+  const _PillStat({
+    required this.icon,
     required this.count,
+    required this.label,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.18), width: 1),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
           Text(
             '$count',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
               color: color,
               height: 1.0,
             ),
           ),
-          const SizedBox(height: 1),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w700,
-              color: color,
-              letterSpacing: 0.2,
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: color,
+                letterSpacing: 0.2,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -1259,107 +1842,6 @@ class _StatPill extends StatelessWidget {
   }
 }
 
-
-class _DetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: const Color(0xFF5F61E6).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, size: 18, color: const Color(0xFF5F61E6)),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.4,
-                  color: Color(0xFF8A8F95),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1B1E22),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CountBox extends StatelessWidget {
-  final String label;
-  final int count;
-  final Color color;
-
-  const _CountBox({
-    required this.label,
-    required this.count,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
-      ),
-      child: Column(
-        children: [
-          Text(
-            '$count',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.4,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _SearchBar extends StatelessWidget {
   final TextEditingController controller;
