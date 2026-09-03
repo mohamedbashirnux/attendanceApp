@@ -958,21 +958,22 @@ class _StudentDetailSheet extends StatelessWidget {
   });
 
   String _excuseLabel(String excuse) {
-    switch (excuse) {
-      case 'Family_Emergency':
-        return 'Family Emergency';
-      case 'Medical_Appointment':
-        return 'Medical Appointment';
-      case 'Personal_Reason':
-        return 'Personal Reason';
-      case 'Official_Duty':
-        return 'Official Duty';
-      case 'Other':
-        return 'Other';
-      case 'No_Excuse':
-      default:
-        return 'No Excuse';
-    }
+    // The backend may send the spaced form ("Family Emergency") or the
+    // Prisma TS enum form ("Family_Emergency"). Handle both.
+    const aliases = <String, String>{
+      'Family_Emergency': 'Family Emergency',
+      'Family Emergency': 'Family Emergency',
+      'Medical_Appointment': 'Medical Appointment',
+      'Medical Appointment': 'Medical Appointment',
+      'Personal_Reason': 'Personal Reason',
+      'Personal Reason': 'Personal Reason',
+      'Official_Duty': 'Official Duty',
+      'Official Duty': 'Official Duty',
+      'Other': 'Other',
+      'No_Excuse': 'No Excuse',
+      'No Excuse': 'No Excuse',
+    };
+    return aliases[excuse] ?? excuse.replaceAll('_', ' ');
   }
 
   @override
