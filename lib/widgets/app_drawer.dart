@@ -6,6 +6,7 @@ import '../pages/contact_us_page.dart';
 import '../pages/privacy_page.dart';
 import '../pages/about_developer_page.dart';
 import '../pages/teacher_portal/teacher_login_page.dart';
+import '../pages/student_portal/student_login_page.dart';
 
 class AppDrawer extends StatelessWidget {
   final Function(int) onHomePressed;
@@ -93,10 +94,10 @@ class AppDrawer extends StatelessWidget {
             title: 'Student Portal',
             onTap: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Coming Soon!'),
-                  backgroundColor: Color(0xFF5F61E6),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StudentLoginPage(),
                 ),
               );
             },
