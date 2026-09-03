@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 
+import 'pages/student_portal/models/student_session.dart';
+import 'pages/teacher_portal/models/teacher_session.dart';
 import 'screens/splash_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Hydrate the teacher and student sessions from SharedPreferences
+  // so a returning user can be navigated straight to their shell.
+  await Future.wait([
+    TeacherSession.load(),
+    StudentSession.load(),
+  ]);
   runApp(const MyApp());
 }
 
