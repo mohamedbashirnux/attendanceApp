@@ -201,7 +201,7 @@ class _Item extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = selected ? const Color(0xFF5F61E6) : const Color(0xFF1B1E22);
-    return Container(
+    return Material(
       color: selected ? const Color(0xFFEEEEFB) : Colors.transparent,
       child: ListTile(
         leading: Icon(icon, color: color),
