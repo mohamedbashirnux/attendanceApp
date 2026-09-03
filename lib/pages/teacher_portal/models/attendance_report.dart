@@ -38,11 +38,31 @@ class StudentAbsentDate {
   const StudentAbsentDate({required this.date, required this.excuse});
 
   factory StudentAbsentDate.fromJson(Map<String, dynamic> json) {
+    final raw = (json['excuse'] ?? 'No Excuse') as String;
     return StudentAbsentDate(
       date: DateTime.parse(json['date'] as String),
-      excuse: (json['excuse'] ?? 'No_Excuse') as String,
+      excuse: _normaliseExcuse(raw),
     );
   }
+
+  /// The backend enum may arrive as the DB form ("Family Emergency")
+  /// or, in some Prisma paths, the TS enum form ("Family_Emergency").
+  /// Normalise any of those to the spaced form we show in the UI.
+  static const Map<String, String> _excuseAliases = {
+    'Family_Emergency': 'Family Emergency',
+    'Family Emergency': 'Family Emergency',
+    'Medical_Appointment': 'Medical Appointment',
+    'Medical Appointment': 'Medical Appointment',
+    'Personal_Reason': 'Personal Reason',
+    'Personal Reason': 'Personal Reason',
+    'Official_Duty': 'Official Duty',
+    'Official Duty': 'Official Duty',
+    'Other': 'Other',
+    'No_Excuse': 'No Excuse',
+    'No Excuse': 'No Excuse',
+  };
+  static String _normaliseExcuse(String v) =>
+      _excuseAliases[v] ?? v.replaceAll('_', ' ');
 }
 
 class StudentReport {
