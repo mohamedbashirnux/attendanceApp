@@ -122,9 +122,14 @@ class TeacherApiService {
 
   /// Submits attendance for one session. The server stores an
   /// `attendance_sessions` row plus one `absences` row per absent
-  /// student (with the excuse enum string). Returns the parsed server
-  /// response so the UI can show the recorded counts / percentage.
-  Future<Map<String, dynamic>> submitAttendance({
+  /// student (with the excuse enum string). Returns a [SubmitAttendanceResult]
+  /// that distinguishes three cases:
+  ///   - ok: 201 — session recorded; `body` is the parsed response
+  ///   - alreadySubmitted: 409 — server says this teacher already
+  ///     submitted attendance for this class today (or the allocation
+  ///     is now locked)
+  ///   - error: any other non-2xx — the server error text is in `message`
+  Future<SubmitAttendanceResult> submitAttendance({
     required int classId,
     required int subjectId,
     required String token,
@@ -147,8 +152,19 @@ class TeacherApiService {
         .timeout(_timeout);
 
     final body = _decode(res);
-    _ensureOk(res, body);
-    return body;
+    if (res.statusCode == 201) {
+      return SubmitAttendanceResult.ok(body);
+    }
+    if (res.statusCode == 409 &&
+        body['already_submitted'] == true) {
+      return SubmitAttendanceResult.alreadySubmitted(
+        message: (body['error'] as String?) ?? 'Already submitted',
+        sessionId: body['session_id'],
+        sessionDatetime: body['session_datetime'],
+      );
+    }
+    final msg = (body['error'] as String?) ?? 'Request failed (${res.statusCode})';
+    return SubmitAttendanceResult.error(msg);
   }
 
   Map<String, dynamic> _decode(http.Response res) {
@@ -165,4 +181,46 @@ class TeacherApiService {
     final msg = (body['error'] as String?) ?? 'Request failed (${res.statusCode})';
     throw TeacherApiException(msg);
   }
+}
+
+/// Discriminated result of [TeacherApiService.submitAttendance].
+class SubmitAttendanceResult {
+  final bool isOk;
+  final bool isAlreadySubmitted;
+  final Map<String, dynamic>? body;
+  final String? message;
+  final Object? sessionId;
+  final String? sessionDatetime;
+
+  const SubmitAttendanceResult._({
+    required this.isOk,
+    required this.isAlreadySubmitted,
+    this.body,
+    this.message,
+    this.sessionId,
+    this.sessionDatetime,
+  });
+
+  factory SubmitAttendanceResult.ok(Map<String, dynamic> body) =>
+      SubmitAttendanceResult._(isOk: true, isAlreadySubmitted: false, body: body);
+
+  factory SubmitAttendanceResult.alreadySubmitted({
+    required String message,
+    Object? sessionId,
+    String? sessionDatetime,
+  }) =>
+      SubmitAttendanceResult._(
+        isOk: false,
+        isAlreadySubmitted: true,
+        message: message,
+        sessionId: sessionId,
+        sessionDatetime: sessionDatetime,
+      );
+
+  factory SubmitAttendanceResult.error(String message) =>
+      SubmitAttendanceResult._(
+        isOk: false,
+        isAlreadySubmitted: false,
+        message: message,
+      );
 }
