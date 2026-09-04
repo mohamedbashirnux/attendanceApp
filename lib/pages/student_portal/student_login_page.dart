@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import 'api_config.dart';
 import 'models/student_session.dart';
 import 'student_api_service.dart';
 import 'student_shell.dart';
@@ -82,10 +83,12 @@ class _StudentLoginPageState extends State<StudentLoginPage> {
         _formError = e.message;
         _submitting = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
-        _formError = 'Could not reach the server. Check your connection.';
+        // e.g. SocketException when the dev server is unreachable.
+        _formError =
+            'Cannot reach ${resolveBaseUrl()}. Make sure the Next.js dev server is running and your phone is on the same WiFi as your PC. ($e)';
         _submitting = false;
       });
     }
