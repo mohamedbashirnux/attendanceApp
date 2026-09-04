@@ -1,5 +1,8 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 
+import 'pages/student_portal/api_config.dart';
 import 'pages/student_portal/models/student_session.dart';
 import 'pages/teacher_portal/models/teacher_session.dart';
 import 'screens/splash_screen.dart';
@@ -12,6 +15,10 @@ Future<void> main() async {
     TeacherSession.load(),
     StudentSession.load(),
   ]);
+  // Log the resolved base URL so the user can see in logcat which
+  // server the app is talking to. Helpful when "Could not reach the
+  // server" pops up on a real device.
+  developer.log('API base URL: ${resolveBaseUrl()}', name: 'main');
   runApp(const MyApp());
 }
 
