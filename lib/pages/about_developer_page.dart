@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../theme/brand_colors.dart';
+
 class AboutDeveloperPage extends StatelessWidget {
   const AboutDeveloperPage({super.key});
 
@@ -41,7 +43,7 @@ class AboutDeveloperPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [const Color(0xFF5F61E6).withOpacity(0.1), Colors.white],
+            colors: [BrandColors.accent.withOpacity(0.1), Colors.white],
           ),
         ),
         child: SingleChildScrollView(
@@ -56,12 +58,12 @@ class AboutDeveloperPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFF5F61E6),
+                      color: BrandColors.accent,
                       width: 4,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF5F61E6).withOpacity(0.3),
+                        color: BrandColors.accent.withOpacity(0.3),
                         spreadRadius: 5,
                         blurRadius: 15,
                         offset: const Offset(0, 5),
@@ -78,7 +80,7 @@ class AboutDeveloperPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF5F61E6),
+                    color: BrandColors.accent,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -88,7 +90,7 @@ class AboutDeveloperPage extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF5F61E6),
+                    color: BrandColors.accent,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
@@ -114,7 +116,7 @@ class AboutDeveloperPage extends StatelessWidget {
                         const Icon(
                           Icons.developer_mode,
                           size: 60,
-                          color: Color(0xFF5F61E6),
+                          color: BrandColors.accent,
                         ),
                         const SizedBox(height: 15),
                         const Text(
@@ -122,7 +124,7 @@ class AboutDeveloperPage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF5F61E6),
+                            color: BrandColors.accent,
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -145,7 +147,7 @@ class AboutDeveloperPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF5F61E6),
+                    color: BrandColors.accent,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -174,17 +176,17 @@ class AboutDeveloperPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF5F61E6).withOpacity(0.1),
+                    color: BrandColors.accent.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
-                      color: const Color(0xFF5F61E6).withOpacity(0.3),
+                      color: BrandColors.accent.withOpacity(0.3),
                     ),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.code,
-                        color: Color(0xFF5F61E6),
+                        color: BrandColors.accent,
                         size: 30,
                       ),
                       const SizedBox(width: 15),
@@ -251,7 +253,7 @@ class AboutDeveloperPage extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF5F61E6),
+                        color: BrandColors.accent,
                       ),
                     ),
                   ],
