@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/brand_colors.dart';
+
 class AIChatbotPage extends StatefulWidget {
   const AIChatbotPage({super.key});
 
@@ -42,7 +44,7 @@ class _AIChatbotPageState extends State<AIChatbotPage> {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFF5F61E6),
+            color: BrandColors.accent,
             borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(30),
               bottomRight: Radius.circular(30),
@@ -132,7 +134,7 @@ class _AIChatbotPageState extends State<AIChatbotPage> {
                     hintText: 'Type your message...',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
-                      borderSide: const BorderSide(color: Color(0xFF5F61E6)),
+                      borderSide: const BorderSide(color: BrandColors.accent),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
@@ -140,7 +142,7 @@ class _AIChatbotPageState extends State<AIChatbotPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
-                      borderSide: const BorderSide(color: Color(0xFF5F61E6)),
+                      borderSide: const BorderSide(color: BrandColors.accent),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -153,7 +155,7 @@ class _AIChatbotPageState extends State<AIChatbotPage> {
               const SizedBox(width: 10),
               CircleAvatar(
                 radius: 25,
-                backgroundColor: const Color(0xFF5F61E6),
+                backgroundColor: BrandColors.accent,
                 child: IconButton(
                   icon: const Icon(Icons.send, color: Colors.white),
                   onPressed: _sendMessage,
@@ -176,7 +178,7 @@ class _AIChatbotPageState extends State<AIChatbotPage> {
           maxWidth: MediaQuery.of(context).size.width * 0.7,
         ),
         decoration: BoxDecoration(
-          color: isUser ? const Color(0xFF5F61E6) : Colors.grey[200],
+          color: isUser ? BrandColors.accent : Colors.grey[200],
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(20),
             topRight: const Radius.circular(20),
