@@ -3,9 +3,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'api_config.dart';
+import '../../connection/api_config.dart';
 import 'models/student.dart';
 import 'models/student_attendance.dart';
+import 'models/student_timetable.dart';
 
 /// Thrown by [StudentApiService] on any non-2xx response. The [message]
 /// is whatever the server returned in the `error` field, or a generic
@@ -84,6 +85,47 @@ class StudentApiService {
     final body = _decode(res);
     _ensureOk(res, body);
     return StudentAttendanceReport.fromJson(body);
+  }
+
+  /// Weekly class schedule for the signed-in student. Returns the
+  /// full payload (header + entries + by_day map). The backend already
+  /// groups by Monday..Sunday, so the UI can render directly.
+  Future<TimetableReport> fetchTimetable(String token) async {
+    final res = await _client
+        .get(
+          Uri.parse('${resolveBaseUrl()}/api/student/timetable'),
+          headers: _authHeaders(token),
+        )
+        .timeout(_timeout);
+
+    final body = _decode(res);
+    _ensureOk(res, body);
+    return TimetableReport.fromJson(body);
+  }
+
+  /// Changes the password for the currently signed-in student. The
+  /// server requires the current password (proves the caller is the
+  /// account owner, not someone who stole just the token) plus a new
+  /// password of at least 8 characters. The student stays signed in
+  /// on this device; other devices will need to log in again.
+  Future<void> changePassword({
+    required String token,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final res = await _client
+        .post(
+          Uri.parse('${resolveBaseUrl()}/api/student/change-password'),
+          headers: _authHeaders(token),
+          body: jsonEncode({
+            'current_password': currentPassword,
+            'new_password': newPassword,
+          }),
+        )
+        .timeout(_timeout);
+
+    final body = _decode(res);
+    _ensureOk(res, body);
   }
 
   Map<String, dynamic> _decode(http.Response res) {
