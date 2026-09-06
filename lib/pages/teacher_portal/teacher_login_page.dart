@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../theme/brand_colors.dart';
+import '../../widgets/app_drawer.dart';
 import 'models/teacher_session.dart';
 import 'teacher_api_service.dart';
 import 'teacher_shell.dart';
@@ -90,10 +92,14 @@ class _TeacherLoginPageState extends State<TeacherLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final errorColor = const Color(0xFFE5484D);
-    final accent = const Color(0xFF5F61E6);
+    const errorColor = BrandColors.danger;
+    final accent = BrandColors.accent;
     return Scaffold(
       backgroundColor: Colors.white,
+      // The login page is reached from the main drawer, so we keep the
+      // main app drawer reachable from here too (swipe / hamburger) so
+      // the user can navigate to other sections without going back.
+      drawer: const AppDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
@@ -296,7 +302,7 @@ class _TeacherLoginPageState extends State<TeacherLoginPage> {
                             TextSpan(
                               text: 'Get Account',
                               style: TextStyle(
-                                color: Color(0xFF5F61E6),
+                                color: BrandColors.accent,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),

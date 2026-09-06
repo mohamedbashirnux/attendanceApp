@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/brand_colors.dart';
+
 /// Reusable "Coming soon" panel for placeholder pages.
 class ComingSoon extends StatelessWidget {
   final String title;
@@ -21,7 +23,7 @@ class ComingSoon extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 72, color: const Color(0xFF5F61E6)),
+            Icon(icon, size: 72, color: BrandColors.accent),
             const SizedBox(height: 18),
             Text(
               title,
@@ -29,7 +31,7 @@ class ComingSoon extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1B1E22),
+                color: BrandColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -38,7 +40,7 @@ class ComingSoon extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 15,
-                color: Color(0xFF5B6167),
+                color: BrandColors.textSecondary,
               ),
             ),
           ],

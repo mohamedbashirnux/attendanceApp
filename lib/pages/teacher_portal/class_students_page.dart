@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../theme/brand_colors.dart';
 import 'models/student.dart';
 import 'models/teacher_session.dart';
 import 'teacher_api_service.dart';
@@ -165,7 +166,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF1B1E22),
+                          color: BrandColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -176,7 +177,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF8A8F95),
+                              color: BrandColors.textMuted,
                             ),
                           ),
                           Text(
@@ -184,7 +185,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF5F61E6),
+                              color: BrandColors.accent,
                             ),
                           ),
                         ],
@@ -194,7 +195,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                         'Pick the reason for the absence',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Color(0xFF5B6167),
+                          color: BrandColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -209,12 +210,12 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                                   horizontal: 14, vertical: 12),
                               decoration: BoxDecoration(
                                 color: selected == entry.key
-                                    ? const Color(0xFFEEEEFB)
-                                    : const Color(0xFFFAFAFB),
+                                    ? BrandColors.accentSoft
+                                    : BrandColors.surface,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: selected == entry.key
-                                      ? const Color(0xFF5F61E6)
+                                      ? BrandColors.accent
                                       : const Color(0xFFEEF0EE),
                                   width: 1.4,
                                 ),
@@ -225,8 +226,8 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                                     _excuseIcon(entry.key),
                                     size: 18,
                                     color: selected == entry.key
-                                        ? const Color(0xFF5F61E6)
-                                        : const Color(0xFF8A8F95),
+                                        ? BrandColors.accent
+                                        : BrandColors.textMuted,
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -236,8 +237,8 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                         color: selected == entry.key
-                                            ? const Color(0xFF5F61E6)
-                                            : const Color(0xFF1B1E22),
+                                            ? BrandColors.accent
+                                            : BrandColors.textPrimary,
                                       ),
                                     ),
                                   ),
@@ -245,7 +246,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                                     const Icon(
                                       Iconsax.tick_circle,
                                       size: 18,
-                                      color: Color(0xFF5F61E6),
+                                      color: BrandColors.accent,
                                     ),
                                 ],
                               ),
@@ -261,7 +262,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                             padding:
                                 const EdgeInsets.symmetric(vertical: 12),
                             side: const BorderSide(
-                                color: Color(0xFFDFE2DE), width: 1),
+                                color: BrandColors.borderStrong, width: 1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -269,7 +270,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                           child: const Text(
                             'Cancel',
                             style: TextStyle(
-                              color: Color(0xFF5B6167),
+                              color: BrandColors.textSecondary,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -422,7 +423,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: const Color(0xFFE5484D),
+        backgroundColor: BrandColors.danger,
         content: Text(result.message ?? 'Unknown error',
             style: const TextStyle(color: Colors.white)),
       ),
@@ -465,7 +466,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
               children: const [
                 SizedBox(height: 120),
                 Center(
-                  child: CircularProgressIndicator(color: Color(0xFF5F61E6)),
+                  child: CircularProgressIndicator(color: BrandColors.accent),
                 ),
               ],
             );
@@ -476,14 +477,14 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
               children: [
                 const SizedBox(height: 80),
                 const Icon(Iconsax.warning_2,
-                    size: 56, color: Color(0xFFE5484D)),
+                    size: 56, color: BrandColors.danger),
                 const SizedBox(height: 12),
                 Text(
                   snapshot.error.toString(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 15,
-                    color: Color(0xFF5B6167),
+                    color: BrandColors.textSecondary,
                     height: 1.4,
                   ),
                 ),
@@ -492,11 +493,11 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                   child: TextButton.icon(
                     onPressed: _refresh,
                     icon: const Icon(Iconsax.refresh,
-                        color: Color(0xFF5F61E6)),
+                        color: BrandColors.accent),
                     label: const Text(
                       'Try again',
                       style: TextStyle(
-                        color: Color(0xFF5F61E6),
+                        color: BrandColors.accent,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -517,7 +518,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                     'No students enrolled yet',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF5B6167),
+                      color: BrandColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -541,7 +542,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                     'No matching students',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF5B6167),
+                      color: BrandColors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -552,7 +553,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                     'Nothing for "$_query"',
                     style: const TextStyle(
                       fontSize: 13,
-                      color: Color(0xFF8A8F95),
+                      color: BrandColors.textMuted,
                     ),
                   ),
                 ),
@@ -563,7 +564,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                     child: const Text(
                       'Clear search',
                       style: TextStyle(
-                        color: Color(0xFF5F61E6),
+                        color: BrandColors.accent,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -625,7 +626,7 @@ class _StudentsHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: const BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Color(0xFFDFE2DE), width: 1),
+          bottom: BorderSide(color: BrandColors.borderStrong, width: 1),
         ),
       ),
       child: const Row(
@@ -638,7 +639,7 @@ class _StudentsHeader extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.6,
-                color: Color(0xFF8A8F95),
+                color: BrandColors.textMuted,
               ),
             ),
           ),
@@ -651,7 +652,7 @@ class _StudentsHeader extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.6,
-                color: Color(0xFF8A8F95),
+                color: BrandColors.textMuted,
               ),
             ),
           ),
@@ -663,7 +664,7 @@ class _StudentsHeader extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.6,
-                color: Color(0xFF8A8F95),
+                color: BrandColors.textMuted,
               ),
             ),
           ),
@@ -699,15 +700,15 @@ class _StudentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF5F61E6);
-    final danger = const Color(0xFFE5484D);
+    final accent = BrandColors.accent;
+    final danger = BrandColors.danger;
     return InkWell(
       onTap: () => onToggle(!present),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
           color: present
-              ? (index.isOdd ? const Color(0xFFFAFAFB) : Colors.white)
+              ? (index.isOdd ? BrandColors.surface : Colors.white)
               : const Color(0xFFFFF5F5),
           border: const Border(
             bottom: BorderSide(color: Color(0xFFEEF0EE), width: 1),
@@ -724,7 +725,7 @@ class _StudentRow extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF5F61E6),
+                  color: BrandColors.accent,
                 ),
               ),
             ),
@@ -736,7 +737,7 @@ class _StudentRow extends StatelessWidget {
                 student.studentId,
                 style: const TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF5B6167),
+                  color: BrandColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -752,7 +753,7 @@ class _StudentRow extends StatelessWidget {
                     student.fullName,
                     style: TextStyle(
                       fontSize: 14.5,
-                      color: const Color(0xFF1B1E22),
+                      color: BrandColors.textPrimary,
                       fontWeight:
                           present ? FontWeight.w500 : FontWeight.w700,
                       height: 1.15,
@@ -768,7 +769,7 @@ class _StudentRow extends StatelessWidget {
                         excuse!,
                         style: const TextStyle(
                           fontSize: 10.5,
-                          color: Color(0xFFE5484D),
+                          color: BrandColors.danger,
                           fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -791,7 +792,7 @@ class _StudentRow extends StatelessWidget {
                       color: const Color(0xFFFEE2E2),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFFE5484D),
+                        color: BrandColors.danger,
                         width: 1,
                       ),
                     ),
@@ -801,7 +802,7 @@ class _StudentRow extends StatelessWidget {
                         Icon(
                           Iconsax.edit,
                           size: 11,
-                          color: Color(0xFFE5484D),
+                          color: BrandColors.danger,
                         ),
                         SizedBox(width: 3),
                         Text(
@@ -809,7 +810,7 @@ class _StudentRow extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFFE5484D),
+                            color: BrandColors.danger,
                           ),
                         ),
                       ],
@@ -832,7 +833,7 @@ class _StudentRow extends StatelessWidget {
                   side: BorderSide(
                     color: present
                         ? const Color(0xFFBFC2C7)
-                        : const Color(0xFFE5484D),
+                        : BrandColors.danger,
                     width: 1.4,
                   ),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -912,13 +913,13 @@ class _SubmitBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF5F61E6);
+    final accent = BrandColors.accent;
     final absent = total - presentCount;
     final rate = total == 0 ? 0 : ((presentCount / total) * 100).round();
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFDFE2DE), width: 1)),
+        border: Border(top: BorderSide(color: BrandColors.borderStrong, width: 1)),
         boxShadow: [
           BoxShadow(
             color: Color(0x1F000000),
@@ -938,9 +939,9 @@ class _SubmitBar extends StatelessWidget {
                 children: [
                   _StatPill(label: 'Present', count: presentCount, color: accent),
                   const SizedBox(width: 6),
-                  _StatPill(label: 'Absent', count: absent, color: const Color(0xFFE5484D)),
+                  _StatPill(label: 'Absent', count: absent, color: BrandColors.danger),
                   const SizedBox(width: 6),
-                  _StatPill(label: 'Rate', count: rate, color: const Color(0xFF1B1E22)),
+                  _StatPill(label: 'Rate', count: rate, color: BrandColors.textPrimary),
                   const Spacer(),
                   // Styled "Check all / Uncheck all" button with border
                   InkWell(
@@ -952,12 +953,12 @@ class _SubmitBar extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: allChecked
                             ? const Color(0xFFFEE2E2)
-                            : const Color(0xFFEEEEFB),
+                            : BrandColors.accentSoft,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: allChecked
-                              ? const Color(0xFFE5484D)
-                              : const Color(0xFF5F61E6),
+                              ? BrandColors.danger
+                              : BrandColors.accent,
                           width: 1.2,
                         ),
                       ),
@@ -970,8 +971,8 @@ class _SubmitBar extends StatelessWidget {
                                 : Iconsax.tick_circle,
                             size: 14,
                             color: allChecked
-                                ? const Color(0xFFE5484D)
-                                : const Color(0xFF5F61E6),
+                                ? BrandColors.danger
+                                : BrandColors.accent,
                           ),
                           const SizedBox(width: 5),
                           Text(
@@ -980,8 +981,8 @@ class _SubmitBar extends StatelessWidget {
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                               color: allChecked
-                                  ? const Color(0xFFE5484D)
-                                  : const Color(0xFF5F61E6),
+                                  ? BrandColors.danger
+                                  : BrandColors.accent,
                             ),
                           ),
                         ],
@@ -1098,8 +1099,8 @@ class _AttendanceSummaryDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF5F61E6);
-    final danger = const Color(0xFFE5484D);
+    final accent = BrandColors.accent;
+    final danger = BrandColors.danger;
     final isConfirm = mode == _SummaryMode.confirm;
     final isAlreadyDone = mode == _SummaryMode.alreadyDone;
     final isSuccess = mode == _SummaryMode.success;
@@ -1175,8 +1176,8 @@ class _ConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF5F61E6);
-    final danger = const Color(0xFFE5484D);
+    final accent = BrandColors.accent;
+    final danger = BrandColors.danger;
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -1221,7 +1222,7 @@ class _ConfirmDialog extends StatelessWidget {
                             fontSize: 8.5,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.8,
-                            color: Color(0xFF8A8F95),
+                            color: BrandColors.textMuted,
                           ),
                         ),
                       ],
@@ -1238,7 +1239,7 @@ class _ConfirmDialog extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF1B1E22),
+                            color: BrandColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 3),
@@ -1246,7 +1247,7 @@ class _ConfirmDialog extends StatelessWidget {
                           'Please confirm before saving',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF8A8F95),
+                            color: BrandColors.textMuted,
                             height: 1.25,
                           ),
                         ),
@@ -1262,7 +1263,7 @@ class _ConfirmDialog extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1B1E22),
+                                  color: BrandColors.textPrimary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1273,14 +1274,14 @@ class _ConfirmDialog extends StatelessWidget {
                         Row(
                           children: [
                             const Icon(Iconsax.people,
-                                size: 12, color: Color(0xFF8A8F95)),
+                                size: 12, color: BrandColors.textMuted),
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
                                 className,
                                 style: const TextStyle(
                                   fontSize: 11.5,
-                                  color: Color(0xFF5B6167),
+                                  color: BrandColors.textSecondary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1290,7 +1291,7 @@ class _ConfirmDialog extends StatelessWidget {
                               '· ${_formatDate(date)}',
                               style: const TextStyle(
                                 fontSize: 10.5,
-                                color: Color(0xFF8A8F95),
+                                color: BrandColors.textMuted,
                               ),
                             ),
                           ],
@@ -1333,7 +1334,7 @@ class _ConfirmDialog extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 11),
                         side: const BorderSide(
-                            color: Color(0xFFDFE2DE), width: 1),
+                            color: BrandColors.borderStrong, width: 1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -1341,7 +1342,7 @@ class _ConfirmDialog extends StatelessWidget {
                       child: const Text(
                         'Cancel',
                         style: TextStyle(
-                          color: Color(0xFF5B6167),
+                          color: BrandColors.textSecondary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -1499,7 +1500,7 @@ class _SuccessDialog extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF1B1E22),
+                                color: BrandColors.textPrimary,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1508,7 +1509,7 @@ class _SuccessDialog extends StatelessWidget {
                               className,
                               style: const TextStyle(
                                 fontSize: 12,
-                                color: Color(0xFF5B6167),
+                                color: BrandColors.textSecondary,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1540,7 +1541,7 @@ class _SuccessDialog extends StatelessWidget {
                       _formatDate(date),
                       style: const TextStyle(
                         fontSize: 11,
-                        color: Color(0xFF8A8F95),
+                        color: BrandColors.textMuted,
                       ),
                     ),
                   ),
@@ -1553,7 +1554,7 @@ class _SuccessDialog extends StatelessWidget {
                           icon: Iconsax.people,
                           count: presentCount + absentCount,
                           label: 'Total',
-                          color: const Color(0xFF1B1E22),
+                          color: BrandColors.textPrimary,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -1562,7 +1563,7 @@ class _SuccessDialog extends StatelessWidget {
                           icon: Iconsax.tick_circle,
                           count: presentCount,
                           label: 'Present',
-                          color: const Color(0xFF5F61E6),
+                          color: BrandColors.accent,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -1571,7 +1572,7 @@ class _SuccessDialog extends StatelessWidget {
                           icon: Iconsax.close_circle,
                           count: absentCount,
                           label: 'Absent',
-                          color: const Color(0xFFE5484D),
+                          color: BrandColors.danger,
                         ),
                       ),
                     ],
@@ -1706,7 +1707,7 @@ class _AlreadyDoneDialog extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF1B1E22),
+                      color: BrandColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -1714,7 +1715,7 @@ class _AlreadyDoneDialog extends StatelessWidget {
                     className,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF5B6167),
+                      color: BrandColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1855,19 +1856,19 @@ class _SearchBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
       child: TextField(
         controller: controller,
-        style: const TextStyle(fontSize: 14, color: Color(0xFF1B1E22)),
+        style: const TextStyle(fontSize: 14, color: BrandColors.textPrimary),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(
             fontSize: 13,
-            color: Color(0xFF8A8F95),
+            color: BrandColors.textMuted,
           ),
           prefixIcon: const Padding(
             padding: EdgeInsets.only(left: 10, right: 6),
             child: Icon(
               Iconsax.search_normal,
               size: 16,
-              color: Color(0xFF8A8F95),
+              color: BrandColors.textMuted,
             ),
           ),
           prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
@@ -1879,7 +1880,7 @@ class _SearchBar extends StatelessWidget {
                 icon: const Icon(
                   Iconsax.close_circle,
                   size: 16,
-                  color: Color(0xFF8A8F95),
+                  color: BrandColors.textMuted,
                 ),
                 onPressed: () => controller.clear(),
               );
@@ -1903,7 +1904,7 @@ class _SearchBar extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
-              color: Color(0xFF5F61E6),
+              color: BrandColors.accent,
               width: 1.5,
             ),
           ),

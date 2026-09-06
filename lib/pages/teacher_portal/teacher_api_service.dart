@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'api_config.dart';
+import '../../connection/api_config.dart';
 import 'models/attendance_report.dart';
 import 'models/student.dart';
 import 'models/teacher.dart';

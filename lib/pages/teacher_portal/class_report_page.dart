@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../theme/brand_colors.dart';
 import 'models/attendance_report.dart';
 import 'models/teacher_session.dart';
 import 'teacher_api_service.dart';
@@ -76,7 +77,7 @@ class _ClassReportPageState extends State<ClassReportPage> {
         elevation: 0,
       ),
       body: RefreshIndicator(
-        color: const Color(0xFF5F61E6),
+        color: BrandColors.accent,
         onRefresh: _refresh,
         child: FutureBuilder<AttendanceReport>(
           future: _future,
@@ -87,7 +88,7 @@ class _ClassReportPageState extends State<ClassReportPage> {
                   SizedBox(height: 120),
                   Center(
                     child:
-                        CircularProgressIndicator(color: Color(0xFF5F61E6)),
+                        CircularProgressIndicator(color: BrandColors.accent),
                   ),
                 ],
               );
@@ -98,14 +99,14 @@ class _ClassReportPageState extends State<ClassReportPage> {
                 children: [
                   const SizedBox(height: 80),
                   const Icon(Iconsax.warning_2,
-                      size: 56, color: Color(0xFFE5484D)),
+                      size: 56, color: BrandColors.danger),
                   const SizedBox(height: 12),
                   Text(
                     snapshot.error.toString(),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 15,
-                      color: Color(0xFF5B6167),
+                      color: BrandColors.textSecondary,
                       height: 1.4,
                     ),
                   ),
@@ -114,11 +115,11 @@ class _ClassReportPageState extends State<ClassReportPage> {
                     child: TextButton.icon(
                       onPressed: _refresh,
                       icon: const Icon(Iconsax.refresh,
-                          color: Color(0xFF5F61E6)),
+                          color: BrandColors.accent),
                       label: const Text(
                         'Try again',
                         style: TextStyle(
-                          color: Color(0xFF5F61E6),
+                          color: BrandColors.accent,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -190,7 +191,7 @@ class _ReportBodyState extends State<_ReportBody> {
     // red when a student has missed 30%+ of sessions.
     if (rate >= 70) return const Color(0xFF16A34A);
     if (rate >= 50) return const Color(0xFFE89B2A);
-    return const Color(0xFFE5484D);
+    return BrandColors.danger;
   }
 
   String _formatDateTime(DateTime d) {
@@ -236,7 +237,7 @@ class _ReportBodyState extends State<_ReportBody> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF5F61E6), Color(0xFF7B7EF1)],
+              colors: BrandColors.accentGradient,
             ),
           ),
           child: Column(
@@ -285,7 +286,7 @@ class _ReportBodyState extends State<_ReportBody> {
                 child: _KpiCard(
                   label: 'Sessions',
                   value: '${report.totalSessions}',
-                  color: const Color(0xFF1B1E22),
+                  color: BrandColors.textPrimary,
                 ),
               ),
               const SizedBox(width: 10),
@@ -293,7 +294,7 @@ class _ReportBodyState extends State<_ReportBody> {
                 child: _KpiCard(
                   label: 'Students',
                   value: '${report.totalStudents}',
-                  color: const Color(0xFF1B1E22),
+                  color: BrandColors.textPrimary,
                 ),
               ),
             ],
@@ -310,7 +311,7 @@ class _ReportBodyState extends State<_ReportBody> {
                   icon: Iconsax.close_circle,
                   label: 'Never attended',
                   value: '${report.neverAttendedCount}',
-                  color: const Color(0xFFE5484D),
+                  color: BrandColors.danger,
                 ),
               ),
               const SizedBox(width: 10),
@@ -323,7 +324,7 @@ class _ReportBodyState extends State<_ReportBody> {
                           .split(' · ')
                           .first
                       : '—',
-                  color: const Color(0xFF5B6167),
+                  color: BrandColors.textSecondary,
                 ),
               ),
             ],
@@ -345,7 +346,7 @@ class _ReportBodyState extends State<_ReportBody> {
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.0,
-                      color: Color(0xFF8A8F95),
+                      color: BrandColors.textMuted,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -353,7 +354,7 @@ class _ReportBodyState extends State<_ReportBody> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEEEFB),
+                      color: BrandColors.accentSoft,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -361,7 +362,7 @@ class _ReportBodyState extends State<_ReportBody> {
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF5F61E6),
+                        color: BrandColors.accent,
                       ),
                     ),
                   ),
@@ -371,7 +372,7 @@ class _ReportBodyState extends State<_ReportBody> {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF5F61E6),
+                      color: BrandColors.accent,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -381,7 +382,7 @@ class _ReportBodyState extends State<_ReportBody> {
                     child: const Icon(
                       Iconsax.arrow_down_1,
                       size: 16,
-                      color: Color(0xFF5F61E6),
+                      color: BrandColors.accent,
                     ),
                   ),
                 ],
@@ -420,19 +421,19 @@ class _ReportBodyState extends State<_ReportBody> {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: TextField(
             controller: widget.searchController,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF1B1E22)),
+            style: const TextStyle(fontSize: 14, color: BrandColors.textPrimary),
             decoration: InputDecoration(
               hintText: 'Search by name or ID',
               hintStyle: const TextStyle(
                 fontSize: 13,
-                color: Color(0xFF8A8F95),
+                color: BrandColors.textMuted,
               ),
               prefixIcon: const Padding(
                 padding: EdgeInsets.only(left: 10, right: 6),
                 child: Icon(
                   Iconsax.search_normal,
                   size: 16,
-                  color: Color(0xFF8A8F95),
+                  color: BrandColors.textMuted,
                 ),
               ),
               prefixIconConstraints:
@@ -445,7 +446,7 @@ class _ReportBodyState extends State<_ReportBody> {
                     icon: const Icon(
                       Iconsax.close_circle,
                       size: 16,
-                      color: Color(0xFF8A8F95),
+                      color: BrandColors.textMuted,
                     ),
                     onPressed: () => widget.searchController.clear(),
                   );
@@ -469,7 +470,7 @@ class _ReportBodyState extends State<_ReportBody> {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: const BorderSide(
-                  color: Color(0xFF5F61E6),
+                  color: BrandColors.accent,
                   width: 1.5,
                 ),
               ),
@@ -493,7 +494,7 @@ class _ReportBodyState extends State<_ReportBody> {
                   'No matching students',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF5B6167),
+                    color: BrandColors.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -593,7 +594,7 @@ class _MiniStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFB),
+        color: BrandColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFEEF0EE), width: 1),
       ),
@@ -619,7 +620,7 @@ class _MiniStat extends StatelessWidget {
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.4,
-                    color: Color(0xFF8A8F95),
+                    color: BrandColors.textMuted,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -628,7 +629,7 @@ class _MiniStat extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1B1E22),
+                    color: BrandColors.textPrimary,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -659,14 +660,14 @@ class _SectionHeader extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.0,
-              color: Color(0xFF8A8F95),
+              color: BrandColors.textMuted,
             ),
           ),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFFEEEEFB),
+              color: BrandColors.accentSoft,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -674,7 +675,7 @@ class _SectionHeader extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF5F61E6),
+                color: BrandColors.accent,
               ),
             ),
           ),
@@ -694,10 +695,10 @@ class _SessionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = session.attendancePercentage;
     final color = pct >= 75
-        ? const Color(0xFF5F61E6)
+        ? BrandColors.accent
         : pct >= 50
             ? const Color(0xFFE89B2A)
-            : const Color(0xFFE5484D);
+            : BrandColors.danger;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -735,7 +736,7 @@ class _SessionTile extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1B1E22),
+                    color: BrandColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -743,7 +744,7 @@ class _SessionTile extends StatelessWidget {
                   '${session.presentStudents} present · ${session.absentStudents} absent · ${session.totalStudents} total',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF5B6167),
+                    color: BrandColors.textSecondary,
                   ),
                 ),
               ],
@@ -761,7 +762,7 @@ class _StudentHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: const BoxDecoration(
-        color: Color(0xFFFAFAFB),
+        color: BrandColors.surface,
         border: Border(
           bottom: BorderSide(color: Color(0xFFEEF0EE), width: 1),
         ),
@@ -776,7 +777,7 @@ class _StudentHeader extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.6,
-                color: Color(0xFF8A8F95),
+                color: BrandColors.textMuted,
               ),
             ),
           ),
@@ -788,7 +789,7 @@ class _StudentHeader extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.6,
-                color: Color(0xFF8A8F95),
+                color: BrandColors.textMuted,
               ),
             ),
           ),
@@ -801,7 +802,7 @@ class _StudentHeader extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.6,
-                color: Color(0xFF8A8F95),
+                color: BrandColors.textMuted,
               ),
             ),
           ),
@@ -814,7 +815,7 @@ class _StudentHeader extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.6,
-                color: Color(0xFF8A8F95),
+                color: BrandColors.textMuted,
               ),
             ),
           ),
@@ -848,7 +849,7 @@ class _StudentReportRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isOdd ? const Color(0xFFFAFAFB) : Colors.white,
+          color: isOdd ? BrandColors.surface : Colors.white,
           border: const Border(
             bottom: BorderSide(color: Color(0xFFEEF0EE), width: 1),
           ),
@@ -862,7 +863,7 @@ class _StudentReportRow extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF5F61E6),
+                  color: BrandColors.accent,
                 ),
               ),
             ),
@@ -876,7 +877,7 @@ class _StudentReportRow extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1B1E22),
+                      color: BrandColors.textPrimary,
                       height: 1.2,
                     ),
                     softWrap: true,
@@ -888,7 +889,7 @@ class _StudentReportRow extends StatelessWidget {
                     '${student.studentId}',
                     style: const TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF8A8F95),
+                      color: BrandColors.textMuted,
                     ),
                   ),
                 ],
@@ -905,8 +906,8 @@ class _StudentReportRow extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: student.absentSessions > 0
-                      ? const Color(0xFFE5484D)
-                      : const Color(0xFF1B1E22),
+                      ? BrandColors.danger
+                      : BrandColors.textPrimary,
                 ),
               ),
             ),
@@ -1014,7 +1015,7 @@ class _StudentDetailSheet extends StatelessWidget {
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF5F61E6), Color(0xFF7B7EF1)],
+                        colors: BrandColors.accentGradient,
                       ),
                       borderRadius: BorderRadius.circular(18),
                     ),
@@ -1133,7 +1134,7 @@ class _StudentDetailSheet extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFAFAFB),
+                      color: BrandColors.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                           color: const Color(0xFFEEF0EE), width: 1),
@@ -1154,7 +1155,7 @@ class _StudentDetailSheet extends StatelessWidget {
                           valueColor: student.absentSessions == 0
                               ? const Color(0xFF16A34A)
                               : student.neverAttended
-                                  ? const Color(0xFFE5484D)
+                                  ? BrandColors.danger
                                   : null,
                         ),
                       ],
@@ -1171,7 +1172,7 @@ class _StudentDetailSheet extends StatelessWidget {
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1.0,
-                          color: Color(0xFF8A8F95),
+                          color: BrandColors.textMuted,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -1187,7 +1188,7 @@ class _StudentDetailSheet extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFFE5484D),
+                            color: BrandColors.danger,
                           ),
                         ),
                       ),
@@ -1201,7 +1202,7 @@ class _StudentDetailSheet extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           vertical: 28, horizontal: 16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFAFAFB),
+                        color: BrandColors.surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                             color: const Color(0xFFEEF0EE), width: 1),
@@ -1219,7 +1220,7 @@ class _StudentDetailSheet extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF1B1E22),
+                              color: BrandColors.textPrimary,
                             ),
                           ),
                         ],
@@ -1241,7 +1242,7 @@ class _StudentDetailSheet extends StatelessWidget {
                                   horizontal: 14, vertical: 12),
                               decoration: BoxDecoration(
                                 color: i.isOdd
-                                    ? const Color(0xFFFAFAFB)
+                                    ? BrandColors.surface
                                     : Colors.white,
                                 border: i < student.absentDates.length - 1
                                     ? const Border(
@@ -1263,7 +1264,7 @@ class _StudentDetailSheet extends StatelessWidget {
                                     child: const Icon(
                                       Iconsax.close_circle,
                                       size: 18,
-                                      color: Color(0xFFE5484D),
+                                      color: BrandColors.danger,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -1278,7 +1279,7 @@ class _StudentDetailSheet extends StatelessWidget {
                                           style: const TextStyle(
                                             fontSize: 13.5,
                                             fontWeight: FontWeight.w700,
-                                            color: Color(0xFF1B1E22),
+                                            color: BrandColors.textPrimary,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
@@ -1287,7 +1288,7 @@ class _StudentDetailSheet extends StatelessWidget {
                                               .absentDates[i].excuse),
                                           style: const TextStyle(
                                             fontSize: 12,
-                                            color: Color(0xFF5B6167),
+                                            color: BrandColors.textSecondary,
                                           ),
                                         ),
                                       ],
@@ -1318,7 +1319,7 @@ class _StudentDetailSheet extends StatelessWidget {
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF8A8F95),
+              color: BrandColors.textMuted,
             ),
           ),
         ),
@@ -1328,7 +1329,7 @@ class _StudentDetailSheet extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: valueColor ?? const Color(0xFF1B1E22),
+              color: valueColor ?? BrandColors.textPrimary,
             ),
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../theme/brand_colors.dart';
 import 'class_report_page.dart';
 import 'models/teacher_class.dart';
 import 'models/teacher_session.dart';
@@ -50,7 +51,7 @@ class _ReportPageState extends State<ReportPage> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: const Color(0xFF5F61E6),
+      color: BrandColors.accent,
       onRefresh: _refresh,
       child: FutureBuilder<List<TeacherClass>>(
         future: _future,
@@ -60,7 +61,7 @@ class _ReportPageState extends State<ReportPage> {
               children: const [
                 SizedBox(height: 120),
                 Center(
-                  child: CircularProgressIndicator(color: Color(0xFF5F61E6)),
+                  child: CircularProgressIndicator(color: BrandColors.accent),
                 ),
               ],
             );
@@ -71,14 +72,14 @@ class _ReportPageState extends State<ReportPage> {
               children: [
                 const SizedBox(height: 80),
                 const Icon(Iconsax.warning_2,
-                    size: 56, color: Color(0xFFE5484D)),
+                    size: 56, color: BrandColors.danger),
                 const SizedBox(height: 12),
                 Text(
                   snapshot.error.toString(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 15,
-                    color: Color(0xFF5B6167),
+                    color: BrandColors.textSecondary,
                     height: 1.4,
                   ),
                 ),
@@ -87,11 +88,11 @@ class _ReportPageState extends State<ReportPage> {
                   child: TextButton.icon(
                     onPressed: _refresh,
                     icon: const Icon(Iconsax.refresh,
-                        color: Color(0xFF5F61E6)),
+                        color: BrandColors.accent),
                     label: const Text(
                       'Try again',
                       style: TextStyle(
-                        color: Color(0xFF5F61E6),
+                        color: BrandColors.accent,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -112,7 +113,7 @@ class _ReportPageState extends State<ReportPage> {
                     'No classes to report on yet',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF5B6167),
+                      color: BrandColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -124,7 +125,7 @@ class _ReportPageState extends State<ReportPage> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: classes.length,
             separatorBuilder: (_, __) =>
-                const Divider(height: 1, color: Color(0xFFDFE2DE)),
+                const Divider(height: 1, color: BrandColors.borderStrong),
             itemBuilder: (context, i) {
               final c = classes[i];
               return _ReportClassRow(cls: c, onTap: () => _open(c));
@@ -152,29 +153,29 @@ class _ReportClassRow extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: const Color(0xFF5F61E6).withOpacity(0.1),
+          color: BrandColors.accent.withOpacity(0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: const Icon(Iconsax.document_text,
-            color: Color(0xFF5F61E6)),
+            color: BrandColors.accent),
       ),
       title: Text(
         cls.subjectName,
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF1B1E22),
+          color: BrandColors.textPrimary,
         ),
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Text(
           '${cls.className} · ${cls.departmentName}',
-          style: const TextStyle(fontSize: 13, color: Color(0xFF5B6167)),
+          style: const TextStyle(fontSize: 13, color: BrandColors.textSecondary),
         ),
       ),
       trailing: const Icon(Iconsax.arrow_right_3,
-          color: Color(0xFF8A8F95), size: 18),
+          color: BrandColors.textMuted, size: 18),
     );
   }
 }

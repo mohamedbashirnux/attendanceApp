@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../theme/brand_colors.dart';
+import '../../widgets/tabs_screen.dart';
 import 'models/teacher_session.dart';
-import 'teacher_login_page.dart';
 
 typedef TeacherPageSwitcher = void Function(int index);
 
@@ -55,15 +56,17 @@ class TeacherDrawer extends StatelessWidget {
                     selected: currentIndex == 3,
                     onTap: () => _go(context, 3),
                   ),
-                  const Divider(height: 24, color: Color(0xFFDFE2DE)),
+                  const Divider(height: 24, color: BrandColors.border),
                   ListTile(
-                    leading: const Icon(Iconsax.info_circle,
-                        color: Color(0xFF8A8F95)),
+                    leading: const Icon(
+                      Iconsax.info_circle,
+                      color: BrandColors.textMuted,
+                    ),
                     title: const Text(
                       'Version',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF8A8F95),
+                        color: BrandColors.textMuted,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -71,7 +74,7 @@ class TeacherDrawer extends StatelessWidget {
                       _appVersion,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF8A8F95),
+                        color: BrandColors.textMuted,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -79,15 +82,15 @@ class TeacherDrawer extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(height: 1, color: Color(0xFFDFE2DE)),
+            const Divider(height: 1, color: BrandColors.border),
             ListTile(
-              leading: const Icon(Iconsax.logout, color: Color(0xFFE5484D)),
+              leading: const Icon(Iconsax.logout, color: BrandColors.danger),
               title: const Text(
                 'Logout',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFE5484D),
+                  color: BrandColors.danger,
                 ),
               ),
               onTap: () => _logout(context),
@@ -108,8 +111,10 @@ class TeacherDrawer extends StatelessWidget {
     Navigator.pop(context);
     await TeacherSession.clear();
     if (!context.mounted) return;
+    // Logout should drop the teacher back to the main app shell
+    // (the bottom-nav home), not to the login screen.
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const TeacherLoginPage()),
+      MaterialPageRoute(builder: (_) => const TabsScreen()),
       (_) => false,
     );
   }
@@ -128,7 +133,7 @@ class _Header extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF5F61E6), Color(0xFF7B7EF1)],
+          colors: BrandColors.accentGradient,
         ),
       ),
       child: Column(
@@ -200,9 +205,9 @@ class _Item extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? const Color(0xFF5F61E6) : const Color(0xFF1B1E22);
+    final color = selected ? BrandColors.accent : BrandColors.textPrimary;
     return Material(
-      color: selected ? const Color(0xFFEEEEFB) : Colors.transparent,
+      color: selected ? BrandColors.accentSoft : Colors.transparent,
       child: ListTile(
         leading: Icon(icon, color: color),
         title: Text(
@@ -218,7 +223,7 @@ class _Item extends StatelessWidget {
                 width: 6,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF5F61E6),
+                  color: BrandColors.accent,
                   borderRadius: BorderRadius.circular(3),
                 ),
               )

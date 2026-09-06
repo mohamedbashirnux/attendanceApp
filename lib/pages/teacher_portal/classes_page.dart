@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../theme/brand_colors.dart';
 import 'class_students_page.dart';
 import 'models/teacher_class.dart';
 import 'models/teacher_session.dart';
@@ -49,7 +50,7 @@ class _ClassesPageState extends State<ClassesPage> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: const Color(0xFF5F61E6),
+      color: BrandColors.accent,
       onRefresh: _refresh,
       child: FutureBuilder<List<TeacherClass>>(
         future: _future,
@@ -71,7 +72,7 @@ class _ClassesPageState extends State<ClassesPage> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: classes.length,
             separatorBuilder: (_, __) =>
-                const Divider(height: 1, color: Color(0xFFDFE2DE)),
+                const Divider(height: 1, color: BrandColors.borderStrong),
             itemBuilder: (context, i) {
               final c = classes[i];
               return _ClassRow(cls: c, onTap: () => _openClass(c));
@@ -99,10 +100,10 @@ class _ClassRow extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: const Color(0xFF5F61E6).withOpacity(0.1),
+          color: BrandColors.accent.withOpacity(0.1),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: const Icon(Iconsax.book, color: Color(0xFF5F61E6)),
+        child: const Icon(Iconsax.book, color: BrandColors.accent),
       ),
       title: Row(
         children: [
@@ -112,7 +113,7 @@ class _ClassRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF1B1E22),
+                color: BrandColors.textPrimary,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -123,7 +124,7 @@ class _ClassRow extends StatelessWidget {
               padding: const EdgeInsets.symmetric(
                   horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFFEEEEFB),
+                color: BrandColors.accentSoft,
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Text(
@@ -131,7 +132,7 @@ class _ClassRow extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF5F61E6),
+                  color: BrandColors.accent,
                 ),
               ),
             ),
@@ -145,19 +146,19 @@ class _ClassRow extends StatelessWidget {
           children: [
             Text(
               '${cls.className} · ${cls.departmentName}',
-              style: const TextStyle(fontSize: 13, color: Color(0xFF5B6167)),
+              style: const TextStyle(fontSize: 13, color: BrandColors.textSecondary),
             ),
             const SizedBox(height: 2),
             Text(
               '${cls.startTime} – ${cls.endTime}  ·  ${cls.semester} ${cls.academicYear}',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF8A8F95)),
+              style: const TextStyle(fontSize: 12, color: BrandColors.textMuted),
               overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
       ),
       trailing:
-          const Icon(Iconsax.arrow_right_3, color: Color(0xFF8A8F95), size: 18),
+          const Icon(Iconsax.arrow_right_3, color: BrandColors.textMuted, size: 18),
     );
   }
 }
@@ -171,7 +172,7 @@ class _LoadingView extends StatelessWidget {
       children: const [
         SizedBox(height: 120),
         Center(
-          child: CircularProgressIndicator(color: Color(0xFF5F61E6)),
+          child: CircularProgressIndicator(color: BrandColors.accent),
         ),
       ],
     );
@@ -194,7 +195,7 @@ class _EmptyView extends StatelessWidget {
             'No classes assigned yet',
             style: TextStyle(
               fontSize: 16,
-              color: Color(0xFF5B6167),
+              color: BrandColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -216,14 +217,14 @@ class _ErrorView extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       children: [
         const SizedBox(height: 80),
-        const Icon(Iconsax.warning_2, size: 56, color: Color(0xFFE5484D)),
+        const Icon(Iconsax.warning_2, size: 56, color: BrandColors.danger),
         const SizedBox(height: 12),
         Text(
           message,
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 15,
-            color: Color(0xFF5B6167),
+            color: BrandColors.textSecondary,
             height: 1.4,
           ),
         ),
@@ -231,11 +232,11 @@ class _ErrorView extends StatelessWidget {
         Center(
           child: TextButton.icon(
             onPressed: onRetry,
-            icon: const Icon(Iconsax.refresh, color: Color(0xFF5F61E6)),
+            icon: const Icon(Iconsax.refresh, color: BrandColors.accent),
             label: const Text(
               'Try again',
               style: TextStyle(
-                color: Color(0xFF5F61E6),
+                color: BrandColors.accent,
                 fontWeight: FontWeight.w600,
               ),
             ),

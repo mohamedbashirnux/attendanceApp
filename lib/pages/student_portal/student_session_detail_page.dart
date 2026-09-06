@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../theme/brand_colors.dart';
+import '../../widgets/logout_button.dart';
 import 'models/student_attendance.dart';
 
 class StudentSessionDetailPage extends StatelessWidget {
@@ -33,10 +35,10 @@ class StudentSessionDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF5F61E6);
-    const danger = Color(0xFFE5484D);
+    const accent = BrandColors.accent;
+    const danger = BrandColors.danger;
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFB),
+      backgroundColor: BrandColors.surface,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -44,12 +46,19 @@ class StudentSessionDetailPage extends StatelessWidget {
         title: const Text(
           'Absence Details',
           style: TextStyle(
-            color: Color(0xFF1B1E22),
+            color: BrandColors.textPrimary,
             fontSize: 16,
             fontWeight: FontWeight.w800,
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF1B1E22)),
+        iconTheme: const IconThemeData(
+          color: BrandColors.accent,
+          size: 24,
+        ),
+        actions: const [
+          LogoutButton(),
+          SizedBox(width: 4),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -61,7 +70,7 @@ class StudentSessionDetailPage extends StatelessWidget {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFFE5484D), Color(0xFFD13136)],
+                colors: [BrandColors.danger, Color(0xFFD13136)],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
@@ -147,7 +156,7 @@ class StudentSessionDetailPage extends StatelessWidget {
                   icon: Iconsax.document_text,
                   label: 'Notes',
                   value: session.notes!,
-                  color: const Color(0xFF5B6167),
+                  color: BrandColors.textSecondary,
                 ),
               ],
             ],
@@ -185,7 +194,7 @@ class StudentSessionDetailPage extends StatelessWidget {
                         'Marked by',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF8A8F95),
+                          color: BrandColors.textMuted,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -197,7 +206,7 @@ class StudentSessionDetailPage extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF1B1E22),
+                          color: BrandColors.textPrimary,
                         ),
                       ),
                       if ((session.teacherCode ?? '').isNotEmpty) ...[
@@ -206,7 +215,7 @@ class StudentSessionDetailPage extends StatelessWidget {
                           'Teacher ID: ${session.teacherCode!}',
                           style: const TextStyle(
                             fontSize: 11.5,
-                            color: Color(0xFF8A8F95),
+                            color: BrandColors.textMuted,
                           ),
                         ),
                       ],
@@ -277,7 +286,7 @@ class _Row extends StatelessWidget {
                   label,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF8A8F95),
+                    color: BrandColors.textMuted,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -286,7 +295,7 @@ class _Row extends StatelessWidget {
                   value,
                   style: const TextStyle(
                     fontSize: 13.5,
-                    color: Color(0xFF1B1E22),
+                    color: BrandColors.textPrimary,
                     fontWeight: FontWeight.w600,
                     height: 1.35,
                   ),
