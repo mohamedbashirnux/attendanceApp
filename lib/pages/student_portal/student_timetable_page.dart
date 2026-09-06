@@ -20,27 +20,18 @@ class _StudentTimetablePageState extends State<StudentTimetablePage> {
   String? _error;
   bool _loading = true;
 
-  // Index of the day shown in the body. 0 = Monday.
+  // 0 = Monday ... 6 = Sunday
   int _selectedDayIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    // Default the body to today so the user lands on something useful.
-    _selectedDayIndex = _todayIndex();
+    _selectedDayIndex = DateTime.now().weekday - 1;
     _load();
   }
 
-  static int _todayIndex() {
-    // DateTime.weekday: 1 = Monday ... 7 = Sunday.
-    return DateTime.now().weekday - 1;
-  }
-
   Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() => _loading = true);
     try {
       final token = StudentSession.token;
       if (token == null) {
@@ -70,7 +61,7 @@ class _StudentTimetablePageState extends State<StudentTimetablePage> {
   @override
   Widget build(BuildContext context) {
     final selectedDay = TimetableReport.weekDays[_selectedDayIndex];
-    final entries = _report?.byDay[selectedDay] ?? const <TimetableEntry>[];
+    final entries = _report?.byDay[selectedDay] ?? [];
 
     return Scaffold(
       backgroundColor: BrandColors.surface,
@@ -99,59 +90,85 @@ class _StudentTimetablePageState extends State<StudentTimetablePage> {
           const SizedBox(width: 4),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? _ErrorBlock(message: _error!, onRetry: _load)
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      _Header(report: _report),
-                      const SizedBox(height: 12),
-                      _DayStrip(
-                        selected: _selectedDayIndex,
-                        todayIndex: _todayIndex(),
-                        counts: {
-                          for (var i = 0; i < TimetableReport.weekDays.length; i++)
-                            TimetableReport.weekDays[i]:
-                                _report?.byDay[TimetableReport.weekDays[i]]?.length ?? 0,
-                        },
-                        onSelect: (i) =>
-                            setState(() => _selectedDayIndex = i),
-                      ),
-                      const SizedBox(height: 8),
-                      _DayBody(
-                        day: selectedDay,
-                        isToday: _selectedDayIndex == _todayIndex(),
-                        entries: entries,
-                      ),
-                    ],
-                  ),
-                ),
+      body: _buildBody(selectedDay, entries),
     );
   }
-}
 
-// ---------------------------------------------------------------------------
-// Header: class info + total per week
-// ---------------------------------------------------------------------------
+  Widget _buildBody(String selectedDay, List<TimetableEntry> entries) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return _ErrorView(message: _error!, onRetry: _load);
+    }
 
-class _Header extends StatelessWidget {
-  final TimetableReport? report;
-  const _Header({required this.report});
+    // Pull-to-refresh
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header card
+            _buildHeader(),
 
-  @override
-  Widget build(BuildContext context) {
-    final r = report;
+            // Day chips row
+            Container(
+              height: 68,
+              margin: const EdgeInsets.only(top: 14),
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: TimetableReport.weekDays.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (_, i) => _buildDayChip(i),
+              ),
+            ),
+
+            // Day heading
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Text(
+                selectedDay,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: BrandColors.textPrimary,
+                ),
+              ),
+            ),
+
+            // Class cards or empty state
+            if (entries.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                child: _EmptyView(day: selectedDay),
+              )
+            else
+              ...entries.map(
+                (e) => Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: _ClassCard(entry: e),
+                ),
+              ),
+
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    final r = _report;
     final className = r?.className ?? '—';
     final dept = (r?.departmentName ?? '').isEmpty ? '—' : r!.departmentName!;
-    final faculty =
-        (r?.facultyName ?? '').isEmpty ? '—' : r!.facultyName!;
+    final faculty = (r?.facultyName ?? '').isEmpty ? '—' : r!.facultyName!;
     final total = r?.totalEntries ?? 0;
+
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -162,7 +179,7 @@ class _Header extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: BrandColors.accent.withOpacity(0.25),
+            color: BrandColors.accent.withAlpha(64),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -174,19 +191,16 @@ class _Header extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white.withAlpha(46),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Iconsax.calendar_1,
-                  size: 20,
-                  color: Colors.white,
-                ),
+                child: const Icon(Iconsax.calendar_1,
+                    size: 22, color: Colors.white),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,7 +217,7 @@ class _Header extends StatelessWidget {
                     Text(
                       '$faculty · $dept',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withAlpha(217),
                         fontSize: 12,
                       ),
                       maxLines: 1,
@@ -218,17 +232,13 @@ class _Header extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: Colors.white.withAlpha(46),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Iconsax.book,
-                  size: 13,
-                  color: Colors.white,
-                ),
+                const Icon(Iconsax.book, size: 13, color: Colors.white),
                 const SizedBox(width: 6),
                 Text(
                   '$total class${total == 1 ? '' : 'es'} per week',
@@ -245,72 +255,17 @@ class _Header extends StatelessWidget {
       ),
     );
   }
-}
 
-// ---------------------------------------------------------------------------
-// Day strip — Mon..Sun chips
-// ---------------------------------------------------------------------------
+  Widget _buildDayChip(int i) {
+    final day = TimetableReport.weekDays[i];
+    final isSelected = i == _selectedDayIndex;
+    final isToday = i == DateTime.now().weekday - 1;
+    final count = _report?.byDay[day]?.length ?? 0;
 
-class _DayStrip extends StatelessWidget {
-  final int selected;
-  final int todayIndex;
-  final Map<String, int> counts;
-  final ValueChanged<int> onSelect;
+    Color bg;
+    Color fg;
+    Color border;
 
-  const _DayStrip({
-    required this.selected,
-    required this.todayIndex,
-    required this.counts,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 64,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: TimetableReport.weekDays.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) {
-          final day = TimetableReport.weekDays[i];
-          final isSelected = i == selected;
-          final isToday = i == todayIndex;
-          final count = counts[day] ?? 0;
-          return _DayChip(
-            label: TimetableReport.dayShort[day] ?? day,
-            count: count,
-            isSelected: isSelected,
-            isToday: isToday,
-            onTap: () => onSelect(i),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _DayChip extends StatelessWidget {
-  final String label;
-  final int count;
-  final bool isSelected;
-  final bool isToday;
-  final VoidCallback onTap;
-
-  const _DayChip({
-    required this.label,
-    required this.count,
-    required this.isSelected,
-    required this.isToday,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final Color bg;
-    final Color fg;
-    final Color border;
     if (isSelected) {
       bg = BrandColors.accent;
       fg = Colors.white;
@@ -320,43 +275,40 @@ class _DayChip extends StatelessWidget {
       fg = isToday ? BrandColors.accent : BrandColors.textPrimary;
       border = isToday ? BrandColors.accent : const Color(0xFFEEF0EE);
     }
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          width: 56,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: border, width: 1),
-          ),
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: fg,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                ),
+
+    return GestureDetector(
+      onTap: () => setState(() => _selectedDayIndex = i),
+      child: Container(
+        width: 60,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: border, width: 1.2),
+        ),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              TimetableReport.dayShort[day] ?? day,
+              style: TextStyle(
+                color: fg,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
               ),
-              const SizedBox(height: 2),
-              Text(
-                count == 0 ? '—' : '$count',
-                style: TextStyle(
-                  color: isSelected
-                      ? Colors.white.withOpacity(0.85)
-                      : BrandColors.textMuted,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              count == 0 ? '—' : '$count',
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.white.withAlpha(179)
+                    : BrandColors.textMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -364,222 +316,127 @@ class _DayChip extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Day body — list of class cards
+// Class card
 // ---------------------------------------------------------------------------
-
-class _DayBody extends StatelessWidget {
-  final String day;
-  final bool isToday;
-  final List<TimetableEntry> entries;
-
-  const _DayBody({
-    required this.day,
-    required this.isToday,
-    required this.entries,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Row(
-              children: [
-                Text(
-                  day,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: BrandColors.textPrimary,
-                  ),
-                ),
-                if (isToday) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: BrandColors.accentSoft,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'Today',
-                      style: TextStyle(
-                        color: BrandColors.accent,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (entries.isEmpty)
-            _EmptyDay(day: day)
-          else
-            ...entries.map(
-              (e) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _ClassCard(entry: e, isToday: isToday),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ClassCard extends StatelessWidget {
   final TimetableEntry entry;
-  final bool isToday;
-  const _ClassCard({required this.entry, required this.isToday});
-
-  String _formatRange() {
-    final start = entry.timeStart;
-    final end = entry.timeEnd;
-    if (start.isEmpty && end.isEmpty) return '—';
-    if (end.isEmpty) return start;
-    return '$start – $end';
-  }
+  const _ClassCard({required this.entry});
 
   @override
   Widget build(BuildContext context) {
     final hall = (entry.locationHall ?? '').trim();
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        onTap: null, // future: open subject detail
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFEEF0EE), width: 1),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Left accent strip with the time range.
-              Container(
-                width: 78,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: BrandColors.accentSoft,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(13),
-                    bottomLeft: Radius.circular(13),
-                  ),
+        border: Border.all(color: const Color(0xFFEEF0EE), width: 1),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Left time strip
+            Container(
+              width: 80,
+              decoration: const BoxDecoration(
+                color: BrandColors.accentSoft,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(13),
+                  bottomLeft: Radius.circular(13),
                 ),
-                alignment: Alignment.center,
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    entry.timeStart.isEmpty ? '—' : entry.timeStart,
+                    style: const TextStyle(
+                      color: BrandColors.accent,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: 20,
+                    height: 1,
+                    color: BrandColors.accent.withAlpha(102),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    entry.timeEnd.isEmpty ? '—' : entry.timeEnd,
+                    style: TextStyle(
+                      color: BrandColors.accent.withAlpha(217),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      height: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      entry.timeStart.isEmpty ? '—' : entry.timeStart,
+                      entry.subjectName,
                       style: const TextStyle(
-                        color: BrandColors.accent,
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        height: 1.0,
+                        color: BrandColors.textPrimary,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Container(
-                      width: 18,
-                      height: 1,
-                      color: BrandColors.accent.withOpacity(0.4),
+                    const SizedBox(height: 8),
+                    _InfoRow(
+                      icon: Iconsax.teacher,
+                      text: entry.teacherName.isEmpty
+                          ? 'Unknown teacher'
+                          : entry.teacherName,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      entry.timeEnd.isEmpty ? '—' : entry.timeEnd,
-                      style: TextStyle(
-                        color: BrandColors.accent.withOpacity(0.85),
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        height: 1.0,
+                    if (hall.isNotEmpty) ...[
+                      const SizedBox(height: 5),
+                      _InfoRow(
+                        icon: Iconsax.location,
+                        text: hall,
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
-              // Body
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        entry.subjectName,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: BrandColors.textPrimary,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      _Row(
-                        icon: Iconsax.teacher,
-                        text: entry.teacherName.isEmpty
-                            ? 'Unknown teacher'
-                            : entry.teacherName,
-                      ),
-                      if (hall.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        _Row(icon: Iconsax.location, text: hall),
-                      ],
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: BrandColors.accentSoft,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          _formatRange(),
-                          style: const TextStyle(
-                            color: BrandColors.accent,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _Row extends StatelessWidget {
+class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String text;
-  const _Row({required this.icon, required this.text});
+  const _InfoRow({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 12, color: BrandColors.textMuted),
-        const SizedBox(width: 6),
+        Icon(icon, size: 13, color: BrandColors.textMuted),
+        const SizedBox(width: 7),
         Expanded(
           child: Text(
             text,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 12.5,
               color: BrandColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
@@ -592,15 +449,19 @@ class _Row extends StatelessWidget {
   }
 }
 
-class _EmptyDay extends StatelessWidget {
+// ---------------------------------------------------------------------------
+// Empty state
+// ---------------------------------------------------------------------------
+
+class _EmptyView extends StatelessWidget {
   final String day;
-  const _EmptyDay({required this.day});
+  const _EmptyView({required this.day});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -610,10 +471,10 @@ class _EmptyDay extends StatelessWidget {
         children: [
           const Icon(
             Iconsax.calendar,
-            size: 28,
+            size: 32,
             color: Color(0xFFB5B9BE),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           const Text(
             'No classes scheduled',
             style: TextStyle(
@@ -629,7 +490,7 @@ class _EmptyDay extends StatelessWidget {
             style: const TextStyle(
               fontSize: 12,
               color: BrandColors.textMuted,
-              height: 1.35,
+              height: 1.4,
             ),
           ),
         ],
@@ -638,10 +499,14 @@ class _EmptyDay extends StatelessWidget {
   }
 }
 
-class _ErrorBlock extends StatelessWidget {
+// ---------------------------------------------------------------------------
+// Error view
+// ---------------------------------------------------------------------------
+
+class _ErrorView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
-  const _ErrorBlock({required this.message, required this.onRetry});
+  const _ErrorView({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -649,11 +514,8 @@ class _ErrorBlock extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       children: [
         const SizedBox(height: 60),
-        const Icon(
-          Iconsax.warning_2,
-          size: 36,
-          color: BrandColors.danger,
-        ),
+        const Icon(Iconsax.warning_2,
+            size: 36, color: BrandColors.danger),
         const SizedBox(height: 10),
         Text(
           message,
@@ -671,10 +533,7 @@ class _ErrorBlock extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: BrandColors.accent),
               foregroundColor: BrandColors.accent,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
