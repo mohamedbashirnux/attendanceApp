@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
-import 'api_config.dart';
+import '../../connection/api_config.dart';
+import '../../theme/brand_colors.dart';
+import '../../widgets/app_drawer.dart';
 import 'models/student_session.dart';
 import 'student_api_service.dart';
 import 'student_shell.dart';
@@ -96,7 +98,7 @@ class _StudentLoginPageState extends State<StudentLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF5F61E6);
+    const accent = BrandColors.accent;
 
     OutlineInputBorder border(Color color, {double width = 1.2}) =>
         OutlineInputBorder(
@@ -106,6 +108,9 @@ class _StudentLoginPageState extends State<StudentLoginPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      // Keep the main app drawer reachable from the student login too,
+      // so the user can navigate to other sections without going back.
+      drawer: const AppDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
