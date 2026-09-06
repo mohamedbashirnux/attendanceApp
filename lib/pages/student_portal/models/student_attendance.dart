@@ -38,6 +38,7 @@ class StudentAttendanceSession {
   final bool wasAbsent;
   final String? excuse;
   final String? absenceDate;
+  final DateTime? absenceCreatedAt;
   final String? notes;
 
   final int? teacherId;
@@ -52,6 +53,7 @@ class StudentAttendanceSession {
     required this.wasAbsent,
     required this.excuse,
     required this.absenceDate,
+    required this.absenceCreatedAt,
     required this.notes,
     required this.teacherId,
     required this.teacherCode,
@@ -67,6 +69,9 @@ class StudentAttendanceSession {
         wasAbsent: (json['was_absent'] as bool?) ?? false,
         excuse: json['excuse'] as String?,
         absenceDate: json['absence_date'] as String?,
+        absenceCreatedAt: json['absence_created_at'] != null
+            ? DateTime.parse(json['absence_created_at'] as String)
+            : null,
         notes: json['notes'] as String?,
         teacherId: (json['teacher_id'] as num?)?.toInt(),
         teacherCode: json['teacher_code'] as String?,

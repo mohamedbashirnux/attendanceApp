@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../theme/brand_colors.dart';
+import '../../widgets/logout_button.dart';
 import 'models/student_attendance.dart';
 import 'models/student_session.dart';
 import 'student_api_service.dart';
@@ -60,7 +62,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Widget build(BuildContext context) {
     final student = StudentSession.student;
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFB),
+      backgroundColor: BrandColors.surface,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -68,17 +70,19 @@ class _StudentHomePageState extends State<StudentHomePage> {
         title: const Text(
           'My Attendance',
           style: TextStyle(
-            color: Color(0xFF1B1E22),
+            color: BrandColors.textPrimary,
             fontSize: 17,
             fontWeight: FontWeight.w800,
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF1B1E22)),
+        iconTheme: const IconThemeData(color: BrandColors.textPrimary),
         actions: [
           IconButton(
             onPressed: _loading ? null : _load,
             icon: const Icon(Iconsax.refresh, size: 20),
           ),
+          const LogoutButton(),
+          const SizedBox(width: 4),
         ],
       ),
       body: RefreshIndicator(
@@ -107,7 +111,7 @@ class _Body extends StatelessWidget {
     if (pct >= 85) return const Color(0xFF16A34A);
     if (pct >= 70) return const Color(0xFF22C55E);
     if (pct >= 50) return const Color(0xFFE89B2A);
-    return const Color(0xFFE5484D);
+    return BrandColors.danger;
   }
 
   @override
@@ -125,12 +129,12 @@ class _Body extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF5F61E6), Color(0xFF7B7EF1)],
+              colors: BrandColors.accentGradient,
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF5F61E6).withOpacity(0.25),
+                color: BrandColors.accent.withOpacity(0.25),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -231,7 +235,7 @@ class _Body extends StatelessWidget {
               child: _StatCard(
                 label: 'Present',
                 value: '${report.totalPresent}',
-                color: const Color(0xFF5F61E6),
+                color: BrandColors.accent,
                 icon: Iconsax.tick_circle,
               ),
             ),
@@ -240,7 +244,7 @@ class _Body extends StatelessWidget {
               child: _StatCard(
                 label: 'Absent',
                 value: '${report.totalAbsent}',
-                color: const Color(0xFFE5484D),
+                color: BrandColors.danger,
                 icon: Iconsax.close_circle,
               ),
             ),
@@ -254,7 +258,7 @@ class _Body extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF1B1E22),
+              color: BrandColors.textPrimary,
             ),
           ),
         ),
@@ -348,7 +352,7 @@ class _StatCard extends StatelessWidget {
             label,
             style: const TextStyle(
               fontSize: 11,
-              color: Color(0xFF8A8F95),
+              color: BrandColors.textMuted,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -370,7 +374,14 @@ class _SubjectRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pctText = subject.attendancePct.toStringAsFixed(1);
+    // The bar fills as the student misses sessions — empty = no
+    // absences yet, full = missed every session. This matches the
+    // intuition that a "growing" red bar = trouble.
+    final total = subject.totalSessions;
+    final missed = subject.absentSessions;
+    final missedPct =
+        total == 0 ? 0.0 : (missed / total).clamp(0.0, 1.0);
+    final missedPctText = (missedPct * 100).toStringAsFixed(1);
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
@@ -404,25 +415,25 @@ class _SubjectRow extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF1B1E22),
+                        color: BrandColors.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${subject.totalSessions} sessions · ${subject.absentSessions} absent',
+                      '$total sessions · $missed absent',
                       style: const TextStyle(
                         fontSize: 11.5,
-                        color: Color(0xFF8A8F95),
+                        color: BrandColors.textMuted,
                       ),
                     ),
                     const SizedBox(height: 8),
+                    // Bar grows as absences accumulate. 0 missed = empty
+                    // bar (good); 1 of 1 missed = full red bar.
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
-                        value: subject.totalSessions == 0
-                            ? 0
-                            : subject.presentSessions / subject.totalSessions,
+                        value: missedPct,
                         minHeight: 6,
                         backgroundColor: const Color(0xFFEEF0EE),
                         valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -436,7 +447,7 @@ class _SubjectRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '$pctText%',
+                    '$missedPctText%',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -447,7 +458,7 @@ class _SubjectRow extends StatelessWidget {
                   const Icon(
                     Iconsax.arrow_right_3,
                     size: 16,
-                    color: Color(0xFF8A8F95),
+                    color: BrandColors.textMuted,
                   ),
                 ],
               ),
@@ -488,7 +499,7 @@ class _EmptyState extends StatelessWidget {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1B1E22),
+              color: BrandColors.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
@@ -497,7 +508,7 @@ class _EmptyState extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 12,
-              color: Color(0xFF8A8F95),
+              color: BrandColors.textMuted,
               height: 1.35,
             ),
           ),
@@ -521,7 +532,7 @@ class _ErrorState extends StatelessWidget {
         const Icon(
           Iconsax.warning_2,
           size: 36,
-          color: Color(0xFFE5484D),
+          color: BrandColors.danger,
         ),
         const SizedBox(height: 10),
         Text(
@@ -529,7 +540,7 @@ class _ErrorState extends StatelessWidget {
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 13,
-            color: Color(0xFF5B6167),
+            color: BrandColors.textSecondary,
             height: 1.4,
           ),
         ),
@@ -538,8 +549,8 @@ class _ErrorState extends StatelessWidget {
           child: OutlinedButton(
             onPressed: onRetry,
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFF5F61E6)),
-              foregroundColor: const Color(0xFF5F61E6),
+              side: const BorderSide(color: BrandColors.accent),
+              foregroundColor: BrandColors.accent,
               padding: const EdgeInsets.symmetric(
                 horizontal: 18,
                 vertical: 10,
