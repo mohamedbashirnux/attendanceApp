@@ -105,32 +105,27 @@ class _StudentTimetablePageState extends State<StudentTimetablePage> {
               ? _ErrorBlock(message: _error!, onRetry: _load)
               : RefreshIndicator(
                   onRefresh: _load,
-                  child: CustomScrollView(
+                  child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: _Header(report: _report),
+                    children: [
+                      _Header(report: _report),
+                      const SizedBox(height: 12),
+                      _DayStrip(
+                        selected: _selectedDayIndex,
+                        todayIndex: _todayIndex(),
+                        counts: {
+                          for (var i = 0; i < TimetableReport.weekDays.length; i++)
+                            TimetableReport.weekDays[i]:
+                                _report?.byDay[TimetableReport.weekDays[i]]?.length ?? 0,
+                        },
+                        onSelect: (i) =>
+                            setState(() => _selectedDayIndex = i),
                       ),
-                      SliverToBoxAdapter(
-                        child: _DayStrip(
-                          selected: _selectedDayIndex,
-                          todayIndex: _todayIndex(),
-                          counts: {
-                            for (var i = 0; i < TimetableReport.weekDays.length; i++)
-                              TimetableReport.weekDays[i]:
-                                  _report?.byDay[TimetableReport.weekDays[i]]?.length ?? 0,
-                          },
-                          onSelect: (i) =>
-                              setState(() => _selectedDayIndex = i),
-                        ),
-                      ),
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                        sliver: _DayBody(
-                          day: selectedDay,
-                          isToday: _selectedDayIndex == _todayIndex(),
-                          entries: entries,
-                        ),
+                      const SizedBox(height: 8),
+                      _DayBody(
+                        day: selectedDay,
+                        isToday: _selectedDayIndex == _todayIndex(),
+                        entries: entries,
                       ),
                     ],
                   ),
@@ -385,11 +380,13 @@ class _DayBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverList(
-      delegate: SliverChildListDelegate(
-        [
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(4, 8, 4, 10),
+            padding: const EdgeInsets.only(bottom: 10),
             child: Row(
               children: [
                 Text(
