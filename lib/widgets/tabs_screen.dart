@@ -5,6 +5,7 @@ import '../pages/home_page.dart';
 import '../pages/graduation_page.dart';
 import '../pages/ai_chatbot_page.dart';
 import '../pages/about_page.dart';
+import '../theme/brand_colors.dart';
 import 'app_drawer.dart';
 
 class TabsScreen extends StatefulWidget {
@@ -68,7 +69,7 @@ class _TabsScreenState extends State<TabsScreen> {
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0xFF5F61E6),
+          selectedItemColor: BrandColors.accent,
           unselectedItemColor: Colors.grey,
           selectedFontSize: 12,
           unselectedFontSize: 11,

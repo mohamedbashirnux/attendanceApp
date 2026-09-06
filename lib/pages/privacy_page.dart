@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/brand_colors.dart';
+
 class PrivacyPage extends StatelessWidget {
   const PrivacyPage({super.key});
 
@@ -13,18 +15,14 @@ class PrivacyPage extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 250,
             pinned: true,
-            backgroundColor: const Color(0xFF5F61E6),
+            backgroundColor: BrandColors.accent,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF5F61E6),
-                      Color(0xFF7B7EF1),
-                      Color(0xFF9B9EF9),
-                    ],
+                    colors: BrandColors.accentGradientDiagonal,
                   ),
                 ),
                 child: Column(
@@ -76,7 +74,7 @@ class PrivacyPage extends StatelessWidget {
                     icon: Icons.info_outline,
                     title: 'About the App',
                     content: 'The Capital University mobile application is designed to serve the academic community of Capital University of Somalia. This app provides a comprehensive platform for students, teachers, and staff to access essential university services and information.',
-                    color: const Color(0xFF5F61E6),
+                    color: BrandColors.accent,
                   ),
 
                   // Teachers Section
@@ -136,8 +134,8 @@ class PrivacyPage extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          const Color(0xFF5F61E6).withOpacity(0.1),
-                          const Color(0xFF7B7EF1).withOpacity(0.05),
+                          BrandColors.accent.withOpacity(0.1),
+                          BrandColors.accentLight.withOpacity(0.05),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
@@ -147,7 +145,7 @@ class PrivacyPage extends StatelessWidget {
                       children: [
                         const Icon(
                           Icons.calendar_today,
-                          color: Color(0xFF5F61E6),
+                          color: BrandColors.accent,
                           size: 18,
                         ),
                         const SizedBox(width: 10),
@@ -326,12 +324,12 @@ class PrivacyPage extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF5F61E6), Color(0xFF7B7EF1)],
+          colors: BrandColors.accentGradient,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF5F61E6).withOpacity(0.3),
+            color: BrandColors.accent.withOpacity(0.3),
             spreadRadius: 2,
             blurRadius: 15,
             offset: const Offset(0, 5),

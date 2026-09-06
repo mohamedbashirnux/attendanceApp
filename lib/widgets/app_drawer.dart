@@ -7,11 +7,16 @@ import '../pages/privacy_page.dart';
 import '../pages/about_developer_page.dart';
 import '../pages/teacher_portal/teacher_login_page.dart';
 import '../pages/student_portal/student_login_page.dart';
+import '../theme/brand_colors.dart';
 
 class AppDrawer extends StatelessWidget {
-  final Function(int) onHomePressed;
+  /// Optional callback used by the bottom-nav shell (`TabsScreen`) to
+  /// jump straight to the Home tab when the user taps the Home item.
+  /// When null (e.g. on the teacher/student login pages) tapping Home
+  /// just pushes a fresh `TabsScreen` with the Home tab selected.
+  final Function(int)? onHomePressed;
 
-  const AppDrawer({super.key, required this.onHomePressed});
+  const AppDrawer({super.key, this.onHomePressed});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,7 @@ class AppDrawer extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF5F61E6), Color(0xFF7B7EF1)],
+                colors: BrandColors.accentGradient,
               ),
             ),
             child: Column(
@@ -71,7 +76,9 @@ class AppDrawer extends StatelessWidget {
             title: 'Home',
             onTap: () {
               Navigator.pop(context);
-              onHomePressed(0);
+              if (onHomePressed != null) {
+                onHomePressed!(0);
+              }
             },
           ),
           _buildDrawerItem(
@@ -168,7 +175,7 @@ class AppDrawer extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF5F61E6)),
+      leading: Icon(icon, color: BrandColors.accent),
       title: Text(
         title,
         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),

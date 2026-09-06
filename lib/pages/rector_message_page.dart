@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/brand_colors.dart';
+
 class RectorMessagePage extends StatelessWidget {
   const RectorMessagePage({super.key});
 
@@ -13,18 +15,14 @@ class RectorMessagePage extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
-            backgroundColor: const Color(0xFF5F61E6),
+            backgroundColor: BrandColors.accent,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF5F61E6),
-                      Color(0xFF7B7EF1),
-                      Color(0xFF9B9EF9),
-                    ],
+                    colors: BrandColors.accentGradientDiagonal,
                   ),
                 ),
                 child: Column(
@@ -106,12 +104,12 @@ class RectorMessagePage extends StatelessWidget {
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF5F61E6), Color(0xFF7B7EF1)],
+                        colors: BrandColors.accentGradient,
                       ),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF5F61E6).withOpacity(0.3),
+                          color: BrandColors.accent.withOpacity(0.3),
                           spreadRadius: 2,
                           blurRadius: 15,
                           offset: const Offset(0, 5),
@@ -177,7 +175,7 @@ class RectorMessagePage extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFF5F61E6).withOpacity(0.3),
+                        color: BrandColors.accent.withOpacity(0.3),
                         width: 2,
                       ),
                     ),
@@ -199,7 +197,7 @@ class RectorMessagePage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF5F61E6),
+                            color: BrandColors.accent,
                           ),
                         ),
                         const SizedBox(height: 5),
@@ -211,14 +209,14 @@ class RectorMessagePage extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF5F61E6).withOpacity(0.1),
+                                color: BrandColors.accent.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Text(
                                 'The Rector',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Color(0xFF5F61E6),
+                                  color: BrandColors.accent,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'dart:async';
 
+import '../theme/brand_colors.dart';
 import '../widgets/tabs_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -57,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF5F61E6), Color(0xFF7B7EF1), Color(0xFF9B9EF9)],
+            colors: BrandColors.accentGradientDiagonal,
           ),
         ),
         child: Center(

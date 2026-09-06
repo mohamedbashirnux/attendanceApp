@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../theme/brand_colors.dart';
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -77,7 +79,7 @@ class HomePage extends StatelessWidget {
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF5F61E6),
+            color: BrandColors.accent,
           ),
         ),
         const SizedBox(height: 20),
@@ -177,7 +179,7 @@ class HomePage extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF5F61E6),
+                color: BrandColors.accent,
               ),
             ),
             const SizedBox(height: 10),
@@ -194,7 +196,7 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5F61E6),
+                backgroundColor: BrandColors.accent,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
@@ -217,7 +219,7 @@ class HomePage extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF5F61E6).withOpacity(0.1),
+        color: BrandColors.accent.withOpacity(0.1),
       ),
       child: Column(
         children: [
@@ -226,7 +228,7 @@ class HomePage extends StatelessWidget {
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF5F61E6),
+              color: BrandColors.accent,
             ),
           ),
           const SizedBox(height: 30),
@@ -273,7 +275,7 @@ class HomePage extends StatelessWidget {
             style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF5F61E6),
+              color: BrandColors.accent,
             ),
           ),
           const SizedBox(height: 10),
