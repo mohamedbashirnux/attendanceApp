@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 
 import '../../connection/api_config.dart';
 import 'models/attendance_report.dart';
+import 'models/lesson_material.dart';
 import 'models/student.dart';
 import 'models/teacher.dart';
 import 'models/teacher_class.dart';
@@ -165,6 +168,76 @@ class TeacherApiService {
     }
     final msg = (body['error'] as String?) ?? 'Request failed (${res.statusCode})';
     return SubmitAttendanceResult.error(msg);
+  }
+
+  Future<List<LessonMaterial>> fetchLessonMaterials({
+    required String token,
+    int? subjectClassId,
+  }) async {
+    final uri =
+        Uri.parse('${resolveBaseUrl()}/api/teacher/lesson-materials').replace(
+      queryParameters: {
+        if (subjectClassId != null)
+          'subject_class_id': '$subjectClassId',
+      },
+    );
+    final res = await _client
+        .get(uri, headers: _authHeaders(token))
+        .timeout(_timeout);
+
+    final body = _decode(res);
+    _ensureOk(res, body);
+
+    final list = (body['materials'] as List?) ?? const [];
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(LessonMaterial.fromJson)
+        .toList(growable: false);
+  }
+
+  /// Uploads a lesson material file to the server.
+  /// Returns the created [LessonMaterial] on success.
+  Future<LessonMaterial> uploadLessonMaterial({
+    required String token,
+    required int subjectClassId,
+    required String title,
+    String? description,
+    required File file,
+  }) async {
+    final uri =
+        Uri.parse('${resolveBaseUrl()}/api/teacher/lesson-materials');
+
+    final request = http.MultipartRequest('POST', uri);
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
+
+    request.fields['subject_class_id'] = '$subjectClassId';
+    request.fields['title'] = title;
+    if (description != null && description.isNotEmpty) {
+      request.fields['description'] = description;
+    }
+
+    final fileName = p.basename(file.path);
+    final stream = http.ByteStream(file.openRead());
+    final length = await file.length();
+
+    request.files.add(http.MultipartFile(
+      'file',
+      stream,
+      length,
+      filename: fileName,
+    ));
+
+    final streamedResponse = await request.send().timeout(_timeout);
+    final response = await http.Response.fromStream(streamedResponse);
+
+    final body = _decode(response);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return LessonMaterial.fromJson(body);
+    }
+    final msg =
+        (body['error'] as String?) ?? 'Upload failed (${response.statusCode})';
+    throw TeacherApiException(msg);
   }
 
   Map<String, dynamic> _decode(http.Response res) {

@@ -1,4 +1,6 @@
 class TeacherClass {
+  final int allocationId;
+  final int subjectClassId;
   final int classId;
   final String className;
   final String departmentName;
@@ -13,6 +15,8 @@ class TeacherClass {
   final String status;
 
   const TeacherClass({
+    required this.allocationId,
+    required this.subjectClassId,
     required this.classId,
     required this.className,
     required this.departmentName,
@@ -29,6 +33,8 @@ class TeacherClass {
 
   factory TeacherClass.fromJson(Map<String, dynamic> json) {
     return TeacherClass(
+      allocationId: _parseInt(json['allocation_id']),
+      subjectClassId: _parseInt(json['subject_class_id']),
       classId: _parseInt(json['class_id']),
       className: (json['class_name'] ?? '') as String,
       departmentName: (json['department_name'] ?? '') as String,
@@ -44,6 +50,52 @@ class TeacherClass {
     );
   }
 }
+
+/// Represents a distinct academic class along with all subject allocations
+/// taught by this teacher in that class.
+class TeacherClassGroup {
+  final int classId;
+  final String className;
+  final String departmentName;
+  final String facultyName;
+  final String studyMode;
+  final String semester;
+  final String academicYear;
+  final List<TeacherClass> allocations;
+
+  const TeacherClassGroup({
+    required this.classId,
+    required this.className,
+    required this.departmentName,
+    required this.facultyName,
+    required this.studyMode,
+    required this.semester,
+    required this.academicYear,
+    required this.allocations,
+  });
+
+  /// Groups a flat list of allocations (from /api/teacher/classes) by [classId].
+  static List<TeacherClassGroup> fromAllocations(List<TeacherClass> allocations) {
+    final Map<int, List<TeacherClass>> map = {};
+    for (final a in allocations) {
+      map.putIfAbsent(a.classId, () => []).add(a);
+    }
+    return map.entries.map((entry) {
+      final first = entry.value.first;
+      return TeacherClassGroup(
+        classId: entry.key,
+        className: first.className,
+        departmentName: first.departmentName,
+        facultyName: first.facultyName,
+        studyMode: first.studyMode,
+        semester: first.semester,
+        academicYear: first.academicYear,
+        allocations: entry.value,
+      );
+    }).toList(growable: false);
+  }
+}
+
 
 /// Tolerant int parser — Prisma serializes big integers as JSON strings
 /// (so JS doesn't lose precision for `Int` > 2^53), but sometimes as

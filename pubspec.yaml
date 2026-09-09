@@ -39,6 +39,8 @@ dependencies:
   iconsax: ^0.0.8
   http: ^1.2.2
   shared_preferences: ^2.3.2
+  file_picker: ^12.2.0
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:

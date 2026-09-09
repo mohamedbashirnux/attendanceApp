@@ -29,7 +29,7 @@ class _TeacherShellState extends State<TeacherShell> {
   late final List<Widget> _pages = [
     ClassesPage(session: widget.session),
     ReportPage(session: widget.session),
-    const UploadLessonPage(),
+    UploadLessonPage(session: widget.session),
     const RateAppPage(),
   ];
 
