@@ -94,8 +94,24 @@ class _ClassLessonMaterialsPageState extends State<ClassLessonMaterialsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(cls.className),
-        centerTitle: true,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              cls.className,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+            ),
+            Text(
+              cls.departmentName,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: BrandColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: false,
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -112,230 +128,137 @@ class _ClassLessonMaterialsPageState extends State<ClassLessonMaterialsPage> {
       body: RefreshIndicator(
         color: BrandColors.accent,
         onRefresh: _refresh,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-          children: [
-            // Full Class Info Header Card (No subjects displayed)
-            _ClassInfoCard(classGroup: cls),
-            const SizedBox(height: 24),
-
-            // Section Title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Uploaded Materials',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: BrandColors.textPrimary,
+        child: FutureBuilder<List<LessonMaterial>>(
+          future: _future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return ListView(
+                children: const [
+                  SizedBox(height: 120),
+                  Center(
+                    child: CircularProgressIndicator(color: BrandColors.accent),
                   ),
-                ),
-                IconButton(
-                  tooltip: 'Refresh',
-                  icon: const Icon(Iconsax.refresh,
-                      size: 20, color: BrandColors.accent),
-                  onPressed: _refresh,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+                ],
+              );
+            }
 
-            // Materials Future Builder
-            FutureBuilder<List<LessonMaterial>>(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Padding(
-                    padding: EdgeInsets.all(48),
-                    child: Center(
-                      child:
-                          CircularProgressIndicator(color: BrandColors.accent),
+            if (snapshot.hasError) {
+              return ListView(
+                padding: const EdgeInsets.all(24),
+                children: [
+                  const SizedBox(height: 80),
+                  const Icon(Iconsax.warning_2,
+                      size: 56, color: BrandColors.danger),
+                  const SizedBox(height: 12),
+                  Text(
+                    snapshot.error.toString(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: BrandColors.textSecondary,
+                      height: 1.4,
                     ),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return _ErrorState(
-                    message: snapshot.error.toString(),
-                    onRetry: _refresh,
-                  );
-                }
-
-                final materials = snapshot.data ?? const <LessonMaterial>[];
-
-                if (materials.isEmpty) {
-                  return _EmptyMaterialsState(
-                    onUploadPressed: _openUploadBottomSheet,
-                  );
-                }
-
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: materials.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
-                    final material = materials[i];
-                    return _MaterialItemCard(material: material);
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Class Information Card (Displays full class info, strictly NO subjects)
-// ---------------------------------------------------------------------------
-class _ClassInfoCard extends StatelessWidget {
-  final TeacherClassGroup classGroup;
-
-  const _ClassInfoCard({required this.classGroup});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: BrandColors.surfaceCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: BrandColors.borderStrong),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: BrandColors.accentGradient,
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Iconsax.teacher, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      classGroup.className,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                  const SizedBox(height: 20),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: _refresh,
+                      icon: const Icon(Iconsax.refresh,
+                          color: BrandColors.accent),
+                      label: const Text(
+                        'Try again',
+                        style: TextStyle(
+                          color: BrandColors.accent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            final materials = snapshot.data ?? const <LessonMaterial>[];
+
+            if (materials.isEmpty) {
+              return ListView(
+                padding: const EdgeInsets.all(24),
+                children: [
+                  const SizedBox(height: 80),
+                  Center(
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: const BoxDecoration(
+                        color: BrandColors.accentSoft,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Iconsax.folder_open,
+                        color: BrandColors.accent,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Center(
+                    child: Text(
+                      'No Lesson Materials Yet',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                         color: BrandColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${classGroup.facultyName} · ${classGroup.departmentName}',
-                      style: const TextStyle(
+                  ),
+                  const SizedBox(height: 6),
+                  const Center(
+                    child: Text(
+                      'Upload lesson notes, slides, or documents for students in this class.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
                         fontSize: 13,
                         color: BrandColors.textSecondary,
-                        fontWeight: FontWeight.w500,
+                        height: 1.4,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              if (classGroup.studyMode.isNotEmpty)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: BrandColors.accentSoft,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: BrandColors.accent.withValues(alpha: 0.3),
-                      width: 1,
+                  ),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: _openUploadBottomSheet,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: BrandColors.accent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 0,
+                      ),
+                      icon: const Icon(Iconsax.document_upload, size: 18),
+                      label: const Text(
+                        'Upload First Lesson',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
                     ),
                   ),
-                  child: Text(
-                    classGroup.studyMode,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: BrandColors.accent,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          const Divider(height: 1, color: BrandColors.border),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _InfoBadge(
-                icon: Iconsax.calendar_1,
-                label: classGroup.semester.isNotEmpty
-                    ? classGroup.semester
-                    : 'Semester N/A',
-              ),
-              const SizedBox(width: 12),
-              _InfoBadge(
-                icon: Iconsax.clock,
-                label: classGroup.academicYear.isNotEmpty
-                    ? classGroup.academicYear
-                    : 'Academic Year',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
+                ],
+              );
+            }
 
-class _InfoBadge extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _InfoBadge({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: BrandColors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: BrandColors.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: BrandColors.textMuted),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: BrandColors.textSecondary,
-            ),
-          ),
-        ],
+            return ListView.separated(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+              itemCount: materials.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              itemBuilder: (context, i) {
+                final material = materials[i];
+                return _MaterialItemCard(material: material);
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -395,7 +318,7 @@ class _MaterialItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: BrandColors.surfaceCard,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: BrandColors.border),
+        border: Border.all(color: BrandColors.borderStrong),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -529,121 +452,6 @@ class _MaterialItemCard extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Empty State
-// ---------------------------------------------------------------------------
-class _EmptyMaterialsState extends StatelessWidget {
-  final VoidCallback onUploadPressed;
-
-  const _EmptyMaterialsState({required this.onUploadPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-      decoration: BoxDecoration(
-        color: BrandColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: BrandColors.border),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: const BoxDecoration(
-              color: BrandColors.accentSoft,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Iconsax.folder_open,
-                color: BrandColors.accent, size: 30),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No Lesson Materials Yet',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: BrandColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Upload lesson notes, slides, or documents for students in this class.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: BrandColors.textSecondary,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 18),
-          ElevatedButton.icon(
-            onPressed: onUploadPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: BrandColors.accent,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              elevation: 0,
-            ),
-            icon: const Icon(Iconsax.document_upload, size: 18),
-            label: const Text(
-              'Upload First Lesson',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Error State
-// ---------------------------------------------------------------------------
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final Future<void> Function() onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          const Icon(Iconsax.warning_2, size: 48, color: BrandColors.danger),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: BrandColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Iconsax.refresh, color: BrandColors.accent),
-            label: const Text(
-              'Try again',
-              style: TextStyle(
-                color: BrandColors.accent,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Upload Lesson Bottom Modal Sheet
 // ---------------------------------------------------------------------------
 class _UploadLessonBottomSheet extends StatefulWidget {
@@ -690,7 +498,7 @@ class _UploadLessonBottomSheetState extends State<_UploadLessonBottomSheet> {
 
   Future<void> _pickFile() async {
     try {
-      final result = await FilePicker.pickFiles(
+      final files = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: [
           'pdf',
@@ -704,8 +512,8 @@ class _UploadLessonBottomSheetState extends State<_UploadLessonBottomSheet> {
         ],
       );
 
-      if (result.isNotEmpty) {
-        final path = result.first.path;
+      if (files.isNotEmpty) {
+        final path = files.first.path;
         if (path != null) {
           final file = File(path);
           final size = await file.length();

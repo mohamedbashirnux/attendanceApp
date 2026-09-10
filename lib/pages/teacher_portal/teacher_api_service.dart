@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as p;
 
 import '../../connection/api_config.dart';
@@ -27,6 +28,7 @@ class TeacherApiService {
 
   final http.Client _client;
   static const _timeout = Duration(seconds: 15);
+  static const _uploadTimeout = Duration(seconds: 90);
 
   Map<String, String> get _jsonHeaders => const {
         'Content-Type': 'application/json',
@@ -226,9 +228,10 @@ class TeacherApiService {
       stream,
       length,
       filename: fileName,
+      contentType: _resolveMediaType(fileName),
     ));
 
-    final streamedResponse = await request.send().timeout(_timeout);
+    final streamedResponse = await request.send().timeout(_uploadTimeout);
     final response = await http.Response.fromStream(streamedResponse);
 
     final body = _decode(response);
@@ -297,3 +300,37 @@ class SubmitAttendanceResult {
         message: message,
       );
 }
+
+MediaType _resolveMediaType(String fileName) {
+  final ext = p.extension(fileName).toLowerCase().replaceAll('.', '');
+  switch (ext) {
+    case 'pdf':
+      return MediaType('application', 'pdf');
+    case 'doc':
+      return MediaType('application', 'msword');
+    case 'docx':
+      return MediaType(
+        'application',
+        'vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
+    case 'ppt':
+      return MediaType('application', 'vnd.ms-powerpoint');
+    case 'pptx':
+      return MediaType(
+        'application',
+        'vnd.openxmlformats-officedocument.presentationml.presentation',
+      );
+    case 'xls':
+      return MediaType('application', 'vnd.ms-excel');
+    case 'xlsx':
+      return MediaType(
+        'application',
+        'vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+    case 'txt':
+      return MediaType('text', 'plain');
+    default:
+      return MediaType('application', 'octet-stream');
+  }
+}
+
