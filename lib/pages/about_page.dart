@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
 import '../theme/brand_colors.dart';
+import '../widgets/under_construction_view.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return const UnderConstructionView(
+      title: 'About Capital University',
+      icon: Iconsax.info_circle,
+    );
+
+    // The original About content stays below for later activation.
     return Scaffold(
       backgroundColor: BrandColors.surface,
       body: SingleChildScrollView(
