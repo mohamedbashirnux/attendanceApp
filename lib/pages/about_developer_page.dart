@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/brand_colors.dart';
+import '../widgets/under_construction_view.dart';
 
 class AboutDeveloperPage extends StatelessWidget {
   const AboutDeveloperPage({super.key});
@@ -36,6 +37,18 @@ class AboutDeveloperPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('About Developer'),
+        centerTitle: true,
+      ),
+      body: const UnderConstructionView(
+        title: 'About Developer',
+        icon: Icons.code,
+      ),
+    );
+
+    // The original developer information stays below for later activation.
     return Scaffold(
       appBar: AppBar(title: const Text('About Developer'), centerTitle: true),
       body: Container(
