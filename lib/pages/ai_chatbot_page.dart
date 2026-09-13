@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/brand_colors.dart';
+import '../widgets/under_construction_view.dart';
 
 class AIChatbotPage extends StatefulWidget {
   const AIChatbotPage({super.key});
@@ -39,6 +40,12 @@ class _AIChatbotPageState extends State<AIChatbotPage> {
 
   @override
   Widget build(BuildContext context) {
+    return const UnderConstructionView(
+      title: 'AI Chatbot',
+      icon: Icons.smart_toy_outlined,
+    );
+
+    // The original chatbot interface stays below for later activation.
     return Column(
       children: [
         Container(
