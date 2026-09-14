@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/brand_colors.dart';
+import '../widgets/under_construction_view.dart';
 
 class ContactUsPage extends StatelessWidget {
   const ContactUsPage({super.key});
@@ -29,6 +30,18 @@ class ContactUsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Contact Us'),
+        centerTitle: true,
+      ),
+      body: const UnderConstructionView(
+        title: 'Contact Us',
+        icon: Icons.phone_outlined,
+      ),
+    );
+
+    // The original contact information stays below for later activation.
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: CustomScrollView(
