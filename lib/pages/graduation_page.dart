@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
 import '../theme/brand_colors.dart';
+import '../widgets/under_construction_view.dart';
 
 class GraduationPage extends StatelessWidget {
   const GraduationPage({super.key});
@@ -22,6 +23,12 @@ class GraduationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return const UnderConstructionView(
+      title: 'Graduation',
+      icon: Iconsax.teacher,
+    );
+
+    // The original graduation gallery stays below for later activation.
     return Scaffold(
       backgroundColor: BrandColors.surface,
       body: CustomScrollView(
